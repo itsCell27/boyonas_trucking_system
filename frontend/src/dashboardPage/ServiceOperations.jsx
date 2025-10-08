@@ -43,11 +43,11 @@ function ServiceOperations() {
                 <p className="text-muted-foreground">Select a service type to manage deliveries and operations</p>
             </section>
             {/* Service types*/}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
                 {/* Service type card */}
                 {/* This dynamically generates the cards from the cardsData array*/}
                 {cardsData.map((card, cardIndex) => {
-                    const cardStyle = `${card.cardStyle} bg-card text-card-foreground flex flex-col gap-6 rounded-xl py-6 shadow-sm group hover:shadow-lg transition-all duration-300 cursor-pointer outline-2 outline-transparent`;
+                    const cardStyle = `${card.cardStyle} bg-card text-card-foreground flex flex-col gap-6 rounded-xl py-6 shadow-sm group hover:shadow-lg transition-all duration-300 cursor-pointer outline-2 outline-transparent border border-foreground/10`;
                     const iconStyle = `${card.cardIconColor} w-12 h-12 rounded-lg flex items-center justify-center  transition-colors`;
                     const buttonStyle = `${card.cardButtonColor} inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive  shadow-xs h-9 px-4 py-2 has-[&gt;svg]:px-3 w-full`;
                     const Icon = card.cardIcon;

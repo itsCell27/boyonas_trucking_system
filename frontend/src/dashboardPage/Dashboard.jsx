@@ -1,6 +1,7 @@
 import '../index.css'
 import SummaryCards from './SummaryCards'
 import ServiceOperations from './ServiceOperations';
+import RecentActivity from './RecentActivity';
 
 function Dashboard() {
     return (
@@ -9,6 +10,9 @@ function Dashboard() {
             {/* Dashboard content goes here */}
             <SummaryCards />
             <ServiceOperations />
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <RecentActivity />
+            </section>
         </div>
     )
 }
