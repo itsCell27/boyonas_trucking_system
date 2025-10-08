@@ -41,7 +41,7 @@ function App() {
     }
   }
   return (
-    <div className="flex h-full bg-background">
+    <div className="flex min-h-screen bg-background">
       <Sidebar setSelected={setSelected} menu={selected}/>
       <main className="flex-1 p-6">
         {renderPage()}

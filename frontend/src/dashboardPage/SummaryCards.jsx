@@ -1,6 +1,7 @@
 import '../index.css'
 import { Truck, Package, Users, DollarSign } from "lucide-react"
 
+// Card data where you can add more cards if needed
 const cards = [
     { title: "Active Trucks", value: 8, iconColor: "text-chart-1", icon: Truck, description: "out of 10 total" },
     { title: "Employees", value: 24, iconColor: "text-chart-2", icon: Users, description: "drivers & helpers" },
@@ -11,7 +12,8 @@ const cards = [
 function SummaryCards() {
 
     return (
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {/* This dynamically generates the cards from the cards array */}
             {cards.map(({ title, value, icon: Icon, iconColor, description }) => {
 
                 const iconClasses = `w-5 h-5 mr-3 ${iconColor}`;
