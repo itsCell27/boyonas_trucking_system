@@ -3,20 +3,39 @@ Install the following
 
 MAKE SURE YOU HAVE NODEjs INSTALLED
 1. Download and Install Node.js from https://nodejs.org/en/download 
-- Next check in cmd using "npm -v" and "node -v"
+- How to check if its installed properly
+-- open cmd and enter command "npm -v" and "node -v"
 
 2. Open project folder and click Terminal --> New Terminal
 
-3. Enter command "cd frontend/trucking_system"
+3. Enter command "cd frontend"
 
-4. Enter command "npm create
+4. Enter command "npm install"
 
+5. Enter command "npm run dev
+
+Note: if npm install did not work use cmd instead
+1. Click the dropdown icon in the bottom right (beside the plus icon)
+
+2. Enter command "npm install"
+
+3. Enter command "npm run dev"
+
+# IF YOU ENCOUNTER THIS ERROR
+PS C:\Users\SOURCE\Documents\boyonas_trucking system> npm install npra File 
+C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at A https:/go.microsoft.com/fwlink/?LinkID-135170. At line:1 char:1 + npm install CategoryInfo : SecurityError: (:) [], PSSecurityException + FullyQualifiedErrorId: UnauthorizedAccess PS 
+
+- REFER TO THIS LINK: https://chatgpt.com/share/68e79a61-9e58-8004-8832-065a73e9a90f
+
+# TECH STACK USED
+
+FRONTEND:
+- HTML
+- CSS
+- JavaScript
 - React
 - Tailwind CSS
 - Lucide React (icons)
-
-# TO RUN
-1. Open Terminal and enter command "npm run dev"
 
 
 # React + Vite

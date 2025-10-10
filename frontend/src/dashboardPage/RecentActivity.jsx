@@ -86,7 +86,7 @@ function RecentActivity() {
                                         <div className="space-y-1">
                                             <div className="flex items-center space-x-2">
                                                 <span className="font-medium">{item.deliveryID}</span>
-                                                <span data-slot="badge" class="inline-flex items-center justify-center rounded-md border border-foreground/10 px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&amp;]:hover:bg-accent [a&amp;]:hover:text-accent-foreground text-xs">
+                                                <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border border-foreground/10 px-2 py-0.5 font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&amp;]:hover:bg-accent [a&amp;]:hover:text-accent-foreground text-xs">
                                                     {item.serviceType}
                                                 </span>
                                             </div>
@@ -98,7 +98,7 @@ function RecentActivity() {
                                         </div>
                                     </div>
                                     {/* Item Status */}
-                                    <div class="text-right space-y-1">
+                                    <div className="text-right space-y-1">
                                         <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 ${statusColor}`}>
                                             {item.status}
                                         </span>

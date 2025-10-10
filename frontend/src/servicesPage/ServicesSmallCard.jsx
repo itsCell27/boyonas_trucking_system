@@ -8,7 +8,8 @@ import '../index.css'
 //         value: 8, 
 //         iconColor: "#002445", 
 //         icon: Truck, 
-//         description: "out of 10 total" 
+//         description: "out of 10 total",
+//         highlight: "+12%"
 //     },
 //     { 
 //         title: "Employees", 
@@ -16,15 +17,16 @@ import '../index.css'
 //         iconColor: "#f14d4c", 
 //         icon: Users, 
 //         description: "drivers & helpers" 
+//         highlight: "+12%"
 //     }
 // ]
 
-function SummaryCards({ cards }) {
+function ServicesSmallCard({ smallCards }) {
 
     return (
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {/* This dynamically generates the cards from the cards array */}
-            {cards.map((card, index) => {
+            {smallCards.map((card, index) => {
                 const Icon = card.icon;
 
                 return (
@@ -35,7 +37,10 @@ function SummaryCards({ cards }) {
                         </div>
                         <div className="px-6">
                             <div className="text-2xl font-bold text-foreground">{card.value}</div>
-                            <div className="text-xs text-muted-foreground mt-1">{card.description}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                <span className="text-green-600">{card.highlight}</span>
+                                {card.description}
+                            </p>
                         </div>
                     </div> 
                 ) 
@@ -44,4 +49,4 @@ function SummaryCards({ cards }) {
     )
 }
 
-export default SummaryCards;
+export default ServicesSmallCard;

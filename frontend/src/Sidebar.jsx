@@ -35,16 +35,17 @@ function Sidebar({ setSelected, menu }) {
             </section>
             {/* Menus */}
             <menu className="flex-1 px-3 py-4 flex flex-col">
-                {navigation.map(({name, icon: Icon}) => {
-                        const active = menu === name;
+                {navigation.map((navigate, index) => {
+                        const Icon = navigate.icon;
+                        const active = menu === navigate.name;
                         const baseClass = "w-full flex items-center justify-start px-4 py-2 rounded-md font-medium text-sm mb-1"
                         const activeClass = active
                             ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
                             : "text-sidebar-foreground hover:bg-sidebar-accent";
                         return (
-                            <button onClick={() => setSelected(name)} className={`${baseClass} ${activeClass}`}>
+                            <button key={index} onClick={() => setSelected(navigate.name)} className={`${baseClass} ${activeClass}`}>
                                 <Icon className="w-4 h-4 mr-3"/>
-                                <span className="text-sm">{name}</span>
+                                <span className="text-sm">{navigate.name}</span>
                             </button>
                         )  
                     })
