@@ -1,5 +1,5 @@
 import { act } from 'react';
-import '../index.css';
+import '../../index.css'
 import { Truck, Wrench, CircleCheckBig } from 'lucide-react';
 
 const fleetData = [

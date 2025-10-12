@@ -1,6 +1,7 @@
-import '../index.css'
+import '../../index.css'
 import ServicesSmallCard from './ServicesSmallCard';
-import { Package, Users, DollarSign, TrendingUp } from "lucide-react";
+import ServicesLargeCard from './ServicesLargeCard';
+import { Package, Users, DollarSign, TrendingUp, Building2, House } from "lucide-react";
 
 const smallCardData = [
     {
@@ -45,9 +46,10 @@ function Services() {
                 <p className="text-muted-foreground mt-1">Manage your Partnership Deliveries and Lipat Bahay Services</p>
             </div>
             {/* Services content goes here */}
-            <ServicesSmallCard smallCards={smallCardData} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap8">
-                
+            <ServicesSmallCard smallCards={smallCardData}/>
+            <ServicesLargeCard  />
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+
             </div>
         </div>
     )

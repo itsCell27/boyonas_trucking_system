@@ -1,5 +1,5 @@
-import '../index.css'
-import SummaryCards from './SummaryCards'
+import '../../index.css'
+import SummaryCards from '../../components/SummaryCards'
 import ServiceOperations from './ServiceOperations';
 import RecentActivity from './RecentActivity';
 import FleetOverview from './FleetOverview';
@@ -18,7 +18,9 @@ function Dashboard() {
         <div className="flex flex-col w-full">
             <h1 className="text-2xl font-bold text-foreground mb-4">Dashboard</h1>
             {/* Dashboard content goes here */}
-            <SummaryCards cards={dashboardCards} />
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <SummaryCards cards={dashboardCards} />
+            </section>
             <ServiceOperations />
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <RecentActivity />
