@@ -1,20 +1,22 @@
 import { ChevronLeft, ChevronRight, Truck, LayoutDashboard, Wrench, Users, BarChart3, FileText, Settings } from "lucide-react"
 import './index.css'
 import React, { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, },
-  { name: "Services", icon: Wrench, },
-  { name: "Fleet Management", icon: Truck, },
-  { name: "Employee Management", icon: Users, },
-  { name: "Operations", icon: BarChart3, },
-  { name: "SOA Generation", icon: FileText, },
-  { name: "Settings", icon: Settings, },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Services", icon: Wrench, path: "/services" },
+  { name: "Fleet Management", icon: Truck, path: "/fleet-management" },
+  { name: "Employee Management", icon: Users, path: "/employee-management" },
+  { name: "Operations", icon: BarChart3, path: "/operations" },
+  { name: "SOA Generation", icon: FileText, path: "/soa-generation" },
+  { name: "Settings", icon: Settings, path: "/settings" },
 ]
 
-function Sidebar({ setSelected, menu }) {
+function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false)
-
+    const location = useLocation();
+    
     const toggleSidebar = () => {
         setIsCollapsed((previous) => !previous);
     };
@@ -45,16 +47,16 @@ function Sidebar({ setSelected, menu }) {
                 <menu className="flex-1 px-3 py-4 flex flex-col">
                     {navigation.map((navigate, index) => {
                             const Icon = navigate.icon;
-                            const active = menu === navigate.name;
+                            const active = location.pathname === navigate.path || (location.pathname === "/" && navigate.path === "/dashboard");
                             const baseClass = "w-full h-10 inline-flex items-center justify-start px-3 py-2 rounded-md font-medium text-sm mb-1 gap-3"
                             const activeClass = active
                                 ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
                                 : "text-sidebar-foreground hover:bg-sidebar-accent";
                             return (
-                                <button key={index} onClick={() => setSelected(navigate.name)} className={`${baseClass} ${activeClass}`}>
+                                <Link key={index} to={navigate.path} className={`${baseClass} ${activeClass}`}>
                                     <Icon className="w-4 h-4 flex-shrink-0"/>
                                     <span className={`${isCollapsed ? "hidden" : "text-sm"}`}>{navigate.name}</span>
-                                </button>
+                                </Link>
                             )  
                         })
                     }

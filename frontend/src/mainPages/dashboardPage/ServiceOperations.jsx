@@ -1,5 +1,6 @@
-import '../index.css';
+import '../../index.css'
 import { Building2, ArrowRight, House } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 // Card data where you can add more cards if needed
 const cardsData = [
@@ -79,11 +80,9 @@ function ServiceOperations() {
                                         </div>
                                     ))}
                                 </div>
-                                <a href={card.cardButtonLink}>
-                                    <button data-slot="button" className={`${buttonStyle}`}>{card.cardButtonName}
-                                        <ArrowRight className="w-4 h-4"/>
-                                    </button>
-                                </a>
+                                <Link to={card.cardButtonLink} data-slot="button" className={`${buttonStyle}`}>{card.cardButtonName}
+                                    <ArrowRight className="w-4 h-4"/>
+                                </Link>
                             </div>
                         </div>
                     )

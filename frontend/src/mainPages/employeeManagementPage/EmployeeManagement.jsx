@@ -1,5 +1,4 @@
-import '../index.css'
-
+import '../../index.css'
 function EmployeeManagement() {
     return (
         <div className="flex-1 p-6">

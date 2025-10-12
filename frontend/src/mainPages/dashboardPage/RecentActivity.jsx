@@ -1,4 +1,4 @@
-import '../index.css';
+import '../../index.css'
 import { Clock, Truck, MapPin } from 'lucide-react';
 
 const activityData = [
