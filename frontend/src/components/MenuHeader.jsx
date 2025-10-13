@@ -2,6 +2,8 @@ import '../index.css'
 import { ArrowLeft, Calendar, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+// This component is reusable
+// Use this format to pass values to the headerData prop
 // const headerData = [
 //     {
 //         headerName: "Fleet Management",
@@ -50,14 +52,20 @@ function MenuHeader({ headerData }) {
                                 </div>
                             </div>
                             <div className='flex items-center space-x-3'>
-                                {header.buttons.map((button, index) =>{
-                                    const Icon = button.buttonIcon
-                                    return (
-                                        <button key={index} data-slot="button" className={button.buttonStyle}>
-                                            <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
-                                        </button>
-                                    )
-                                })}
+                                {/* Check if the header has buttons*/}
+                                {Array.isArray(header.buttons) && header.buttons.length > 0 && (
+                                    <>
+                                    {header.buttons.map((button, index) =>{
+                                        const Icon = button.buttonIcon
+                                        return (
+                                            <button key={index} data-slot="button" className={button.buttonStyle}>
+                                                <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
+                                            </button>
+                                        )
+                                    })}
+                                    </>
+                                )}
+                                
                             </div>
                         </div>
                     )
