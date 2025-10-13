@@ -1,9 +1,11 @@
 import '../../index.css'
 import MenuHeader from '../../components/MenuHeader'
 import SummaryCards from '../../components/SummaryCards'
+import ManageFleetOverview from './ManageFleetOverview'
+import NotAvailableTrucks from './NotAvailableTrucks'
 import { Truck, CircleCheckBig, Wrench, TriangleAlert, Filter, Plus, Download, ClockArrowUp } from 'lucide-react'
 
-const headerContent = [
+const fleetHeaderContent = [
     {
         headerName: "Fleet Management",
         headerDescription: "Manage trucks, maintenance, and assignments",
@@ -33,7 +35,7 @@ const headerContent = [
     }
 ]
 
-const summaryCards = [
+const fleetSummaryCards = [
     {
         title: "Total Fleet", 
         value: 10, 
@@ -68,9 +70,17 @@ const summaryCards = [
 function FleetManagement() {
     return (
         <>
-            <MenuHeader headerData={headerContent} />
+            <MenuHeader headerData={fleetHeaderContent} />
             <section className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8'>
-                <SummaryCards cards={summaryCards} />
+                <SummaryCards cards={fleetSummaryCards} />
+            </section>
+            <section className='grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8'>
+                <div className='lg:col-span-3'>
+                    <ManageFleetOverview />
+                </div>
+                <div>
+                    <NotAvailableTrucks />
+                </div>
             </section>
         </>
     )
