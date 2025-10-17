@@ -4,9 +4,9 @@ import { Plus, Funnel, Download, Route, Clock, Calendar, House } from 'lucide-re
 
 const headerContent = [
     {
-        headerName: "Partnership Deliveries",
-        headerDescription: "Manage B2B logistics operations",
-        headerLink: "/",
+        headerName: "Manage Lipat Bahay",
+        headerDescription: "Household moving & retail deliveries",
+        headerLink: "/app",
         buttons: [
             {
                 buttonName: "Schedule",

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import './App.css'
 
 // menu
@@ -20,28 +20,26 @@ import ManagePartnership from './subPages/managePartnershipPage/ManagePartnershi
 
 function App() {
   return (
-    <BrowserRouter>
       <div className="flex min-h-screen bg-background">
         <Sidebar />
         <main className="flex-1 p-6">
           <Routes>
-            {/* Main Pages */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/fleet-management" element={<Fleet />} />
-            <Route path="/employee-management" element={<Employees />} />
-            <Route path="/operations" element={<Operations />} />
-            <Route path="/soa-generation" element={<SOAGeneration />} />
-            <Route path="/settings" element={<Settings />} />
+            {/* Main Pages - relative paths since parent route is /app/* */}
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="services" element={<Services />} />
+            <Route path="fleet-management" element={<Fleet />} />
+            <Route path="employee-management" element={<Employees />} />
+            <Route path="operations" element={<Operations />} />
+            <Route path="soa-generation" element={<SOAGeneration />} />
+            <Route path="settings" element={<Settings />} />
 
             {/* Sub Pages */}
-            <Route path="/partnership" element={<ManagePartnership />} />
-            <Route path="/lipat-bahay" element={<ManageLipatBahay />} />
+            <Route path="partnership" element={<ManagePartnership />} />
+            <Route path="lipat-bahay" element={<ManageLipatBahay />} />
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
   )
 }
 

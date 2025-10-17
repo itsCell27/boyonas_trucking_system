@@ -36,9 +36,9 @@ export default function OnLeave() {
                             return (
                                 <div key={index} className='flex items-center justify-between border border-foreground/10 rounded-md p-3'>
                                     <div class="space-y-1">
-                                        <div class="font-medium text-sm">Name: {employee.name}</div>
-                                        <div class="text-xs text-muted-foreground">Position: {employee.position}</div>
-                                        <div class="text-xs text-muted-foreground">Contact: {employee.contact}</div>
+                                        <div className="font-medium text-sm">Name: {employee.name}</div>
+                                        <div className="text-xs text-muted-foreground">Position: {employee.position}</div>
+                                        <div className="text-xs text-muted-foreground">Contact: {employee.contact}</div>
                                     </div>
                                 </div>
                             )

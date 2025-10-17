@@ -95,21 +95,23 @@ function FleetOverview() {
                                         </div>
                                         <span className={`${statusColor}`}>{vehicle.status}</span>
                                     </div>
-                                    <div className="text-xs text-muted-foreground mb-2">Location: {vehicle.location}</div>
+                                    {/* <div className="text-xs text-muted-foreground mb-2">Location: {vehicle.location}</div> */}
                                     {/* Route Progress*/}
-                                    {hasRouteProgress && // if this is true, show the progress bar
-                                        <div className="space-y-1">
+                                    {/* {hasRouteProgress && // if this is true, show the progress bar */}
+                                        {/* <div className="space-y-1">
                                             <div className="flex justify-between text-xs">
                                                 <span>Route Progress</span>
                                                 <span>{vehicle.routeProgress}%</span>
-                                            </div>
+                                            </div> */}
                                             {/* Progress Bar */}
-                                            <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100" data-slot="progress" className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
+                                            {/* <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100" data-slot="progress" className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
                                                 <div data-state="indeterminate" data-max="100" data-slot="progress-indicator" className="h-full bg-primary rounded-full transition-all duration-500"
                                                 style={{ width: `${vehicle.routeProgress}%` }}></div>
                                             </div>
-                                        </div>
-                                    }
+                                        </div> */}
+                                    {/* } */}
+                                    {/* removed for now */}
+                                    
                                 </div>
                             )
                         })}

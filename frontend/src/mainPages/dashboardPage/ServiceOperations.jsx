@@ -17,7 +17,7 @@ const cardsData = [
     ],
     cardButtonName: "Manage Partnership Operations",
     cardButtonColor: "bg-primary text-primary-foreground hover:bg-primary/90 group-hover:bg-primary group-hover:text-primary-foreground",
-    cardButtonLink: "/partnership"
+    cardButtonLink: "/app/partnership"
   },
   {
     cardStyle: "hover:outline-accent/20",
@@ -32,7 +32,7 @@ const cardsData = [
     ],
     cardButtonName: "Manage Lipat Bahay Services",
     cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",
-    cardButtonLink: "/lipat-bahay"
+    cardButtonLink: "/app/lipat-bahay"
   }
 ];
 

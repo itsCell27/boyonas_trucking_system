@@ -6,7 +6,7 @@ const headerContent = [
     {
         headerName: "Partnership Deliveries",
         headerDescription: "Manage B2B logistics operations",
-        headerLink: "/",
+        headerLink: "/app",
         buttons: [
             {
                 buttonName: "Filter",

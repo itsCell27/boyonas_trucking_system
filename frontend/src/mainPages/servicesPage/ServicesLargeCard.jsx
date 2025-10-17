@@ -13,7 +13,7 @@ const largeCardData = [
       lucideIconStyle: "w-6 h-6 text-primary",
       cardButtonName: "Manage Partnership",
       cardButtonColor: "bg-primary text-primary-foreground hover:bg-primary/90 group-hover:bg-primary group-hover:text-primary-foreground",
-      cardButtonLink: "/partnership",
+      cardButtonLink: "/app/partnership",
       content: [
         { title: "Active Deliveries", value: "156", color: "primary"},
         { title: "Success Rate", value: "98%", color: "green-600"},
@@ -42,7 +42,7 @@ const largeCardData = [
       lucideIconStyle: "w-6 h-6 text-accent",
       cardButtonName: "Manage Lipat Bahay",
       cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",
-      cardButtonLink: "/lipat-bahay",
+      cardButtonLink: "/app/lipat-bahay",
       content: [
         { title: "Active Bookings", value: "42", color: "accent"},
         { title: "Success Rate", value: "95%", color: "green-600"},
