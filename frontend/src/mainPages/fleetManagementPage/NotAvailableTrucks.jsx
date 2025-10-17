@@ -49,7 +49,7 @@ export default function NotAvailableTrucks() {
                         <Wrench className='w-5 h-5'/>
                         <span>Not Available Trucks</span>
                     </div>
-                    <div data-slot="card-description" class="text-muted-foreground text-sm">Upcoming and ongoing maintenance tasks</div>
+                    <div data-slot="card-description" className="text-muted-foreground text-sm">Upcoming and ongoing maintenance tasks</div>
                 </header>
                 <div className='px-6'>
                     <div className='space-y-4'>

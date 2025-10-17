@@ -4,13 +4,13 @@ import React, { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Services", icon: Wrench, path: "/services" },
-  { name: "Fleet Management", icon: Truck, path: "/fleet-management" },
-  { name: "Employee Management", icon: Users, path: "/employee-management" },
-  { name: "Operations", icon: BarChart3, path: "/operations" },
-  { name: "SOA Generation", icon: FileText, path: "/soa-generation" },
-  { name: "Settings", icon: Settings, path: "/settings" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/app/dashboard" },
+  { name: "Services", icon: Wrench, path: "/app/services" },
+  { name: "Fleet Management", icon: Truck, path: "/app/fleet-management" },
+  { name: "Employee Management", icon: Users, path: "/app/employee-management" },
+  { name: "Operations", icon: BarChart3, path: "/app/operations" },
+  { name: "SOA Generation", icon: FileText, path: "/app/soa-generation" },
+  { name: "Settings", icon: Settings, path: "/app/settings" },
 ]
 
 function Sidebar() {
@@ -47,7 +47,7 @@ function Sidebar() {
                 <menu className="flex-1 px-3 py-4 flex flex-col">
                     {navigation.map((navigate, index) => {
                             const Icon = navigate.icon;
-                            const active = location.pathname === navigate.path || (location.pathname === "/" && navigate.path === "/dashboard");
+                            const active = location.pathname === navigate.path || (location.pathname === "/app" && navigate.path === "/app/dashboard");
                             const baseClass = "w-full h-10 inline-flex items-center justify-start px-3 py-2 rounded-md font-medium text-sm mb-1 gap-3"
                             const activeClass = active
                                 ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"

@@ -8,7 +8,7 @@ const operationsHeaderContent = [
     {
         headerName: "Operations Monitoring",
         headerDescription: "Real-time oversight of all trucking operations",
-        headerLink: "/",
+        headerLink: "/app",
         buttons: [
         ]
     }

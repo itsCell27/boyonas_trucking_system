@@ -9,17 +9,17 @@ const employeeHeaderContent = [
     {
         headerName: "Employee Management",
         headerDescription: "Manage drivers, helpers, and staff",
-        headerLink: "/",
+        headerLink: "/app",
         buttons: [
             {
                 buttonName: "Filter",
                 buttonIcon: Filter,
-                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
             },
             {
                 buttonName: "Add Employee",
                 buttonIcon: Plus,
-                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm"
+                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm"
             }
         ]
     }
@@ -108,22 +108,18 @@ const status = [
 
 function EmployeeManagement() {
 
-    // Filter by Roles
-    const [isRoleOpen, setIsRoleOpen] = useState(false);
+    const [openFilter, setOpenFilter] = useState(null);
+
     const [selectedRole, setSelectedRole] = useState("All Roles");
-
-    const handleRoleSelect = (role) => {
-        setSelectedRole(role.label);
-        setIsRoleOpen(false);
-    };
-
-    // Filter by Status
-    const [isStatusOpen, setIsStatusOpen] = useState(false)
     const [selectedStatus, setSelectedStatus] = useState("All Status");
 
-    const handleStatusSelect = (status) => {
-        setSelectedStatus(status.label);
-        setIsStatusOpen(false);
+    const toggleFilter = (filterName) => {
+        setOpenFilter(openFilter === filterName ? null : filterName);
+    };
+
+    const handleSelect = (filterName, value, setter) => {
+        setter(value);
+        setOpenFilter(null);
     };
 
     // To check if the employee is a driver
@@ -157,42 +153,42 @@ function EmployeeManagement() {
                                     <input data-slot="input" className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pl-10" placeholder="Search by name, ID, or phone..."></input>
                                 </div>
                                 {/* Filter by Roles */}
-                                <button onClick={() => setIsRoleOpen(!isRoleOpen)} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent relative">
-                                    <span className='mr-8'>{selectedRole}</span>
-                                    <ChevronDown
-                                    className={`w-4 h-4 transition-transform duration-200 ${isRoleOpen ? "rotate-180" : ""}`}
-                                    />
-
-                                    {/* Dropdown Menu */}
-                                    {isRoleOpen && (
+                                <div className="relative">
+                                    <button onClick={() => toggleFilter('role')} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent w-full sm:w-auto sm:min-w-[150px]">
+                                        <span className='mr-8'>{selectedRole}</span>
+                                        <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-200 ${openFilter === 'role' ? "rotate-180" : ""}`}
+                                        />
+                                    </button>
+                                    {openFilter === 'role' && (
                                         <ul className="absolute top-10 left-0 mt-1 w-full bg-white border border-foreground/10 rounded-md shadow-md z-10 p-1">
                                         {roles.map((role, index) => (
-                                            <li key={index} onClick={() => handleRoleSelect(role)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
+                                            <li key={index} onClick={() => handleSelect('role', role.label, setSelectedRole)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
                                                 {role.label}
                                             </li>
                                         ))}
                                         </ul>
                                     )}
-                                </button>
+                                </div>
 
                                 {/* Filter by Status */}
-                                <button onClick={() => setIsStatusOpen(!isStatusOpen)} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent relative">
-                                    <span className='mr-8'>{selectedStatus}</span>
-                                    <ChevronDown
-                                    className={`w-4 h-4 transition-transform duration-200 ${isStatusOpen ? "rotate-180" : ""}`}
-                                    />
-
-                                    {/* Dropdown Menu */}
-                                    {isStatusOpen && (
+                                <div className="relative">
+                                    <button onClick={() => toggleFilter('status')} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent w-full sm:w-auto sm:min-w-[150px]">
+                                        <span className='mr-8'>{selectedStatus}</span>
+                                        <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-200 ${openFilter === 'status' ? "rotate-180" : ""}`}
+                                        />
+                                    </button>
+                                    {openFilter === 'status' && (
                                         <ul className="absolute top-10 left-0 mt-1 w-full bg-white border border-foreground/10 rounded-md shadow-md z-10 p-1">
                                         {status.map((item, index) => (
-                                            <li key={index} onClick={() => handleStatusSelect(item)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
+                                            <li key={index} onClick={() => handleSelect('status', item.label, setSelectedStatus)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
                                                 {item.label}
                                             </li>
                                         ))}
                                         </ul>
                                     )}
-                                </button>
+                                </div>
 
                             </div>
                         </header>
@@ -262,8 +258,8 @@ function EmployeeManagement() {
                                                         <div className="text-muted-foreground">{employee.yearsOnTeam}</div>
                                                     </div>
                                                 </div>
-                                                <div class="text-xs text-muted-foreground">
-                                                    <div class="font-medium">Emergency Contact</div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    <div className="font-medium">Emergency Contact</div>
                                                     <div>{employee.emergencyContact}</div>
                                                 </div>
                                                 {/* Footer Button */}

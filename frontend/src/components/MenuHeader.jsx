@@ -58,7 +58,7 @@ function MenuHeader({ headerData }) {
                                     {header.buttons.map((button, index) =>{
                                         const Icon = button.buttonIcon
                                         return (
-                                            <button key={index} data-slot="button" className={button.buttonStyle}>
+                                            <button key={index} data-slot="button" className={button.buttonStyle} onClick={button.onClick}>
                                                 <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
                                             </button>
                                         )
