@@ -1,50 +1,36 @@
+import { useState, useEffect } from 'react';
 import '../../index.css'
 import { Truck, Ellipsis, User } from 'lucide-react'
 
-const fleetOverviewData = [
-    {
-        plateNumber: "ABC-1234",
-        model: "Isuzu Forward",
-        capacity: "6 tons",
-        year: "2020",
-        truckStatus: "Active",
-        statusColor: "green",
-        driver: "Juan Santos",
-        currentAssignment: "DEL-001 - Flash Express"
-    },
-    {
-        plateNumber: "GHI-9012",
-        model: "Isuzu Elf",
-        capacity: "3 tons",
-        year: "2021",
-        truckStatus: "Active",
-        statusColor: "green",
-        driver: "Pedro Reyes",
-        currentAssignment: "DEL-002 - LBC"
-    },
-    {
-        plateNumber: "JKL-3456",
-        model: "Hyundai Mighty",
-        capacity: "5 tons",
-        year: "2018",
-        truckStatus: "Available",
-        statusColor: "blue",
-        driver: "Ana Garcia",
-        currentAssignment: "LB-048 - Lipat Bahay"
-    },
-    {
-        plateNumber: "DEF-5678",
-        model: "Mitsubishi Canter",
-        capacity: "4 tons",
-        year: "2019",
-        truckStatus: "Available",
-        statusColor: "blue",
-        driver: "Maria Cruz",
-        currentAssignment: "None"
-    }
-]
-
 export default function ManageFleetOverview() {
+    const [fleetData, setFleetData] = useState([]);
+
+    useEffect(() => {
+        fetch('http://localhost/react_trucking_system/backend/api/fleet_management.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setFleetData(data.data);
+                } else {
+                    console.error('Error fetching fleet data:', data.error);
+                }
+            })
+            .catch(error => console.error('Error fetching fleet data:', error));
+    }, []);
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Available':
+                return 'blue';
+            case 'On Delivery':
+                return 'green';
+            case 'Maintenance':
+                return 'yellow';
+            default:
+                return 'gray';
+        }
+    };
+
     return (
     <>
         <div className='bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm'>
@@ -55,7 +41,8 @@ export default function ManageFleetOverview() {
             <div className='px-6'>
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                     {/* Fleet Overview Card Format*/}
-                    {fleetOverviewData.map((vehicle, index) => {
+                    {fleetData.map((vehicle, index) => {
+                        const statusColor = getStatusColor(vehicle.operational_status);
                         return (
                             <div key={index} className='bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm hover:shadow-md transition-shadow'>
                                 {/* Fleet Overview Card Header*/}
@@ -66,12 +53,12 @@ export default function ManageFleetOverview() {
                                                 <Truck />
                                             </div>
                                             <div>
-                                                <div data-slot="card-title" className="font-semibold text-lg">{vehicle.plateNumber}</div>
+                                                <div data-slot="card-title" className="font-semibold text-lg">{vehicle.plate_number}</div>
                                                 <div data-slot="card-description" className="text-muted-foreground text-sm">{vehicle.model} • {vehicle.capacity} • {vehicle.year}</div>
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 overflow-hidden border-transparent bg-${vehicle.statusColor}-100 text-${vehicle.statusColor}-800 dark:bg-${vehicle.statusColor}-900 dark:text-${vehicle.statusColor}-300`}>{vehicle.truckStatus}</span>
+                                            <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 overflow-hidden border-transparent bg-${statusColor}-100 text-${statusColor}-800 dark:bg-${statusColor}-900 dark:text-${statusColor}-300`}>{vehicle.operational_status}</span>
                                             <button data-slot="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all shrink-0 outline-none hover:bg-accent hover:text-accent-foreground size-9">
                                                 <Ellipsis className='w-6 h-6'/>
                                             </button>
@@ -87,13 +74,13 @@ export default function ManageFleetOverview() {
                                             <User />
                                             <div>
                                                 <div className="font-medium">Driver</div>
-                                                <div className="text-muted-foreground">{vehicle.driver}</div>
+                                                <div className="text-muted-foreground">{vehicle.driver || 'N/A'}</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="text-sm">
                                         <div className="font-medium">Current Assignment</div>
-                                        <div className="text-muted-foreground">{vehicle.currentAssignment}</div>
+                                        <div className="text-muted-foreground">{vehicle.currentAssignment || 'None'}</div>
                                     </div>
                                     {/* Footer Button */}
                                     <footer className='flex space-x-2 pt-2'>

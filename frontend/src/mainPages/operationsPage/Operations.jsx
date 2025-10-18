@@ -1,6 +1,8 @@
 import '../../index.css'
 import MenuHeader from '../../components/MenuHeader'
 import LiveMonitoring from './LiveMonitoring'
+import DeliveryHistory from './DeliveryHistory'
+import PerformanceAnalysis from './PerformanceAnalysis'
 import React, { useState } from 'react'
 import { Truck, CircleDotDashed, CircleCheckBig, TriangleAlert, Filter, Download, Plus, Ellipsis, User, Clock, RefreshCw, ArrowRight, Phone, Package } from 'lucide-react'
 
@@ -19,6 +21,20 @@ function Operations() {
     const [activeTab, setActiveTab] = useState('Live Monitoring');
 
     const tabs = ['Live Monitoring', 'Delivery History', 'Performance Analysis'];
+
+    // decide what to render for the active tab
+    const renderTabContent = () => {
+        if (activeTab === 'Live Monitoring') {
+        return <LiveMonitoring />;
+        } else if (activeTab === 'Delivery History') {
+        return <DeliveryHistory />;
+        } else if (activeTab === 'Performance Analysis') {
+        return <PerformanceAnalysis />;
+        }
+        return <LiveMonitoring />;
+    };
+
+  const content = renderTabContent();
 
     return (
         <>
@@ -41,15 +57,8 @@ function Operations() {
                 ))}
             </div>
 
-            {activeTab === 'Live Monitoring' && (
-                <LiveMonitoring />
-            )}
-
-            {activeTab !== 'Live Monitoring' && (
-                 <div className="flex items-center justify-center h-96 bg-card rounded-xl border border-foreground/10 mt-8">
-                    <p className="text-muted-foreground">Content for {activeTab} will be available soon.</p>
-                </div>
-            )}
+            {/* Tab content */}
+            {content}
         </>
     )
 }
