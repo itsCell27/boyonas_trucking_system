@@ -1,6 +1,7 @@
 import MenuHeader from '../../components/MenuHeader'
 import SummaryCards from '../../components/SummaryCards'
 import { Plus, Funnel, Download, Route, Clock, Calendar } from 'lucide-react'
+import SPXExpressDelivery from './SPXExpressDelivery'
 
 const headerContent = [
     {
@@ -59,6 +60,9 @@ function ManagePartnership() {
             <MenuHeader headerData={headerContent}/>
             <section className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-8'>
                 <SummaryCards cards={partnershipCards}/>
+            </section>
+            <section className='mt-8'>
+                <SPXExpressDelivery />
             </section>
         </>
     )

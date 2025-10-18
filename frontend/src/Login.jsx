@@ -96,7 +96,7 @@ export default function Login() {
                         </div>
                         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                         <div className="mb-6 text-right">
-                            <a href="#" className="text-sm text-primary hover:underline">Forgot Password?</a>
+                            {/* <a href="#" className="text-sm text-primary hover:underline">Forgot Password?</a> */}
                         </div>
                         <button type="submit" className="w-full bg-primary text-white py-2 rounded-md hover:bg-[#001744] transition-colors duration-300">Login</button>
                     </form>
