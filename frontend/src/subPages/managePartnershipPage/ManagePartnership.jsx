@@ -1,7 +1,7 @@
 import MenuHeader from '../../components/MenuHeader'
-import SummaryCards from '../../components/SummaryCards'
 import { Plus, Funnel, Download, Route, Clock, Calendar } from 'lucide-react'
 import SPXExpressDelivery from './SPXExpressDelivery'
+import StatusCards from '../../components/StatusCards'
 
 const headerContent = [
     {
@@ -32,23 +32,23 @@ const partnershipCards = [
     {
         title: "Routes Today",
         value: "5",
-        iconColor: "#002060",
+        color: "text-chart-1",
         icon: Route,
-        description: "3 completed, 2 ongoing"
+        subtitle: "3 completed, 2 ongoing"
     },
     {
         title: "Routes Yesterday",
         value: "8",
-        iconColor: "#f14d4c",
+        color: "text-chart-2",
         icon: Clock,
-        description: "All completed"
+        subtitle: "All completed"
     },
     {
         title: "Incoming Routes Tomorrow",
         value: "6",
-        iconColor: "#006d58",
+        color: "text-chart-3",
         icon: Calendar,
-        description: "Scheduled for SPX Express"
+        subtitle: "Scheduled for SPX Express"
     }
 ]
 
@@ -59,7 +59,7 @@ function ManagePartnership() {
         <>
             <MenuHeader headerData={headerContent}/>
             <section className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-8'>
-                <SummaryCards cards={partnershipCards}/>
+                <StatusCards cards={partnershipCards}/>
             </section>
             <section className='mt-8'>
                 <SPXExpressDelivery />
