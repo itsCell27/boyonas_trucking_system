@@ -19,7 +19,10 @@ const onLeaveEmployees = [
     }
 ]
 
-export default function OnLeave() {
+export default function OnLeave({ employees }) {
+
+    const onLeaveEmployees = employees.filter(employee => employee.status === 'On Leave');
+
 
     return (
         <div className='space-y-6'>
@@ -32,17 +35,26 @@ export default function OnLeave() {
                 </header>
                 <main className='px-6'>
                     <div className='space-y-4'>
-                        {onLeaveEmployees.map((employee, index) => {
-                            return (
-                                <div key={index} className='flex items-center justify-between border border-foreground/10 rounded-md p-3'>
-                                    <div class="space-y-1">
-                                        <div className="font-medium text-sm">Name: {employee.name}</div>
-                                        <div className="text-xs text-muted-foreground">Position: {employee.position}</div>
-                                        <div className="text-xs text-muted-foreground">Contact: {employee.contact}</div>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                        {onLeaveEmployees.length === 0 ? (
+                            <div className="text-sm text-muted-foreground w-full text-center p-2 border border-dashed border-foreground/20 rounded-md">
+                                No employees are currently on leave.
+                            </div>
+                        ) : (
+                            <>
+                                {onLeaveEmployees.map((employee, index) => {
+                                    return (
+                                        <div key={index} className='flex items-center justify-between border border-foreground/10 rounded-md p-3'>
+                                            <div className="space-y-1">
+                                                <div className="font-medium text-sm">Name: {employee.full_name}</div>
+                                                <div className="text-xs text-muted-foreground">Position: {employee.position}</div>
+                                                <div className="text-xs text-muted-foreground">Contact: {employee.contact_number}</div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </>
+                        )}
+                        
                     </div>
                 </main>
             </div>
