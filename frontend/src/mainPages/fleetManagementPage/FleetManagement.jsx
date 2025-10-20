@@ -1,23 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../../index.css'
 import MenuHeader from '../../components/MenuHeader'
-import SummaryCards from '../../components/SummaryCards'
+import StatusCards from '../../components/StatusCards'
 import ManageFleetOverview from './ManageFleetOverview'
 import NotAvailableTrucks from './NotAvailableTrucks'
-import AddTruckModal from '../../components/AddTruckModal';
+import AddTruckDialog from './AddTruckDialog';
 import { Truck, CircleCheckBig, Wrench, TriangleAlert, Filter, Plus, Download, ClockArrowUp } from 'lucide-react'
 
 
 function FleetManagement() {
-    const [isAddTruckModalOpen, setIsAddTruckModalOpen] = useState(false);
+    const [fleetData, setFleetData] = useState([]);
 
-    const handleAddTruckOpenModal = () => {
-        setIsAddTruckModalOpen(true);
+    // count available trucks
+    const availableCount = fleetData.filter(truck => truck.operational_status === 'Available').length;
+
+    // count active trucks
+    const activeCount = fleetData.filter(truck => truck.operational_status === 'On Delivery').length;
+
+    // count maintenance trucks
+    const maintenanceCount = fleetData.filter(truck => truck.operational_status === 'Maintenance').length;
+
+
+    const fetchFleetData = async () => {
+        try {
+            const response = await fetch('http://localhost/react_trucking_system/backend/api/manage_fleet_overview.php');
+            const data = await response.json();
+            if (data.success) {
+                setFleetData(data.data);
+            } else {
+                console.error('Error fetching fleet data:', data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching fleet data:', error);
+        }
     };
 
-    const handleAddTruckCloseModal = () => {
-        setIsAddTruckModalOpen(false);
-    };
+    useEffect(() => {
+        fetchFleetData();
+    }, []);
 
     const fleetHeaderContent = [
         {
@@ -26,20 +46,24 @@ function FleetManagement() {
             headerLink: "/app",
             buttons: [
                 {
+                    hasShadcnDialog: false,
                     buttonName: "Filter",
                     buttonIcon: Filter,
                     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
                 },
                 {
+                    hasShadcnDialog: false,
                     buttonName: "Export",
                     buttonIcon: Download,
                     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
                 },
                 {
+                    hasShadcnDialog: true,
+                    dialogName: AddTruckDialog,
                     buttonName: "Add Truck",
                     buttonIcon: Plus,
                     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm",
-                    onClick: handleAddTruckOpenModal
+                    onClose: fetchFleetData,
                 }
             ]
         }
@@ -48,31 +72,31 @@ function FleetManagement() {
     const fleetSummaryCards = [
         {
             title: "Total Fleet", 
-            value: 10, 
-            iconColor: "#002445", 
+            value: fleetData.length, 
+            subtitle: "Trucks in operation", 
             icon: Truck, 
-            description: "Trucks in operation"
+            color: "text-chart-1"
         },
         {
             title: "Active", 
-            value: 8, 
-            iconColor: "#00a63e", 
+            value: activeCount, 
+            subtitle: "Currently deployed", 
             icon: CircleCheckBig, 
-            description: "Currently deployed"
+            color: "text-chart-2"
         },
         {
             title: "Maintenance", 
-            value: 1, 
-            iconColor: "#d08700", 
+            value: maintenanceCount, 
+            subtitle: "Under maintenance", 
             icon: Wrench, 
-            description: "Under service"
+            color: "text-chart-3"
         },
         {
             title: "Available", 
-            value: 1, 
-            iconColor: "#155dfc", 
+            value: availableCount, 
+            subtitle: "Ready for assignment", 
             icon: ClockArrowUp, 
-            description: "Ready for assignment"
+            color: "text-chart-4"
         },
     ]
 
@@ -80,17 +104,14 @@ function FleetManagement() {
         <>
             <MenuHeader headerData={fleetHeaderContent} />
             <section className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8'>
-                <SummaryCards cards={fleetSummaryCards} />
+                <StatusCards cards={fleetSummaryCards} />
             </section>
-            <section className='grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8'>
-                <div className='lg:col-span-3'>
-                    <ManageFleetOverview />
+            <section className='grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-8'>
+                <div className='xl:col-span-3 lg:col-span-2'>
+                    <ManageFleetOverview fleetData={fleetData} fetchFleetData={fetchFleetData} />
                 </div>
-                <div>
-                    <NotAvailableTrucks />
-                </div>
+                <NotAvailableTrucks trucks={fleetData}/>
             </section>
-            {isAddTruckModalOpen && <AddTruckModal onClose={handleAddTruckCloseModal} />}
         </>
     )
 }

@@ -1,5 +1,5 @@
 import MenuHeader from '../../components/MenuHeader'
-import SummaryCards from '../../components/SummaryCards'
+import StatusCards from '../../components/StatusCards'
 import LipatBahayBooking from './LipatBahayBooking'
 import { Plus, Funnel, Download, Route, Clock, Calendar, House } from 'lucide-react'
 
@@ -37,23 +37,23 @@ const partnershipCards = [
     {
         title: "Bookings Today",
         value: "4",
-        iconColor: "#002060",
+        subtitle: "3 completed, 1 ongoing",
         icon: Route,
-        description: "3 completed, 2 ongoing"
+        color: "text-chart-1",
     },
     {
         title: "Bookings Yesterday",
         value: "8",
-        iconColor: "#f14d4c",
+        subtitle: "All completed",
         icon: Clock,
-        description: "All completed"
+        color: "text-chart-2",
     },
     {
         title: "Bookings Tomorrow",
         value: "6",
-        iconColor: "#006d58",
+        subtitle: "Scheduled moves",
         icon: House,
-        description: "Scheduled moves"
+        color: "text-chart-3",
     }
 ]
 
@@ -62,7 +62,7 @@ export default function ManageLipatBahay() {
             <>
                 <MenuHeader headerData={headerContent}/>
                 <section className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-8'>
-                    <SummaryCards cards={partnershipCards}/>
+                    <StatusCards cards={partnershipCards}/>
                 </section>
                 <section className='mt-8'>
                     <LipatBahayBooking />

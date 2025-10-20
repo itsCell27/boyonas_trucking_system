@@ -69,7 +69,7 @@ Before you begin, make sure you have the following software installed on your ma
     *   Open your web browser and navigate to `http://localhost/phpmyadmin/`.
     *   Create a new database named `trucking_system`.
     *   Select the `trucking_system` database and go to the **Import** tab.
-    *   Click on **Choose File** and select the `trucking_services_system.sql` file located in the `backend/database` directory.
+    *   Click on **Choose File** and select the `trucking_system.sql` file located in the `backend/database` directory.
     *   Click on **Go** to import the database.
 
 3.  **Configure the backend:**

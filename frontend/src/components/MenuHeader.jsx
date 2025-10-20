@@ -1,6 +1,7 @@
 import '../index.css'
-import { ArrowLeft, Calendar, Plus } from 'lucide-react'
+import { ArrowLeft, Calendar, Key, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 
 // This component is reusable
 // Use this format to pass values to the headerData prop
@@ -18,7 +19,8 @@ import { Link } from 'react-router-dom'
 //             {
 //                 buttonName: "Add Truck",
 //                 buttonIcon: Plus,
-//                 buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm"
+//                 buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm",
+//                 onClick: handleAddTruckOpenModal
 //             }
 //         ]
 //     }
@@ -26,14 +28,14 @@ import { Link } from 'react-router-dom'
 
 // Buttons Styles
 // Default Button Style
-{/* <button data-slot="button" className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm">
-    <Calendar className='h-4 w-4 mr-2'/>Schedule
-</button> */}
+//<button data-slot="button" className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm">
+//    <Calendar className='h-4 w-4 mr-2'/>Schedule
+//</button>
                                 
 // For the last button style
-{/* <button data-slot="button" className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm">
-    <Plus className='h-4 w-4 mr-2'/>Add Truck
-</button> */}
+// <button data-slot="button" className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm">
+// <Plus className='h-4 w-4 mr-2'/>Add Truck
+//</button>
 
 function MenuHeader({ headerData }) {
     return (
@@ -57,10 +59,33 @@ function MenuHeader({ headerData }) {
                                     <>
                                     {header.buttons.map((button, index) =>{
                                         const Icon = button.buttonIcon
+                                        const DialogComponent = button.dialogName
+
+
+                                        if (button.hasShadcnDialog && DialogComponent && button.onClose) {
+                                            return (
+                                                <DialogComponent key={index} onClose={button.onClose} />
+                                            )
+                                        }
+
+                                        if (button.hasShadcnDialog && DialogComponent) {
+                                            return (
+                                                <DialogComponent key={index} />
+                                            )
+                                        }
+
+                                        if (button.isLastButton) {
+                                            return (
+                                                <Button key={index} data-slot="button" onClick={button.onClick}>
+                                                    <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
+                                                </Button>
+                                            )
+                                        }
+
                                         return (
-                                            <button key={index} data-slot="button" className={button.buttonStyle} onClick={button.onClick}>
+                                            <Button key={index} data-slot="button" variant="outline" onClick={button.onClick}>
                                                 <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
-                                            </button>
+                                            </Button>
                                         )
                                     })}
                                     </>

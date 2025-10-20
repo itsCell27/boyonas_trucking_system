@@ -1,35 +1,35 @@
 import '../../index.css'
-import SummaryCards from '../../components/SummaryCards'
+import StatusCards from '../../components/StatusCards'
 import { Truck, User, Clock, ArrowRight, Phone, Package } from 'lucide-react'
 
 const operationsSummaryCards = [
     {
         title: "Total Deliveries Today",
         value: 24,
-        iconColor: "#002445",
+        subtitle: "+12% from yesterday",
         icon: Package,
-        description: "+12% from yesterday"
+        color: "text-chart-1"
     },
     {
         title: "Total Trucks Deployed",
         value: "8/10",
-        iconColor: "#155dfc",
+        subtitle: "+12% from yesterday",
         icon: Truck,
-        description: "80% from yesterday"
+        color: "text-chart-2"
     },
     {
         title: "Completed Deliveries Today",
         value: 12,
-        iconColor: "#00a63e",
+        subtitle: "+2 from yesterday",
         icon: User,
-        description: "+2 from yesterday"
+        color: "text-chart-3"
     },
     {
         title: "Pending Deliveries",
         value: "2",
-        iconColor: "#f14d4c",
+        subtitle: "-1 from yesterday",
         icon: Clock,
-        description: "-1 from yesterday"
+        color: "text-chart-4"
     },
 ]
 
@@ -87,7 +87,7 @@ export default function LiveMonitoring() {
     return (
         <>
             <section className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8'>
-                <SummaryCards cards={operationsSummaryCards} />
+                <StatusCards cards={operationsSummaryCards} />
             </section>
             <main className='grid grid-cols-1 gap-8 mt-8'>
                 {/* Live Tracking */}

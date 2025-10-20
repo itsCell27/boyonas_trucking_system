@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button"
 import '../../index.css';
 
 function Settings() {
   const [theme, setTheme] = useState('light');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  // Save theme to localStorage when user clicks “Save Changes”
+  const handleSaveChanges = () => {
+    localStorage.setItem('theme', theme);
+    alert(`Theme saved as "${theme}"`);
+  };
 
   const handleThemeChange = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
@@ -30,7 +45,7 @@ function Settings() {
   };
 
   return (
-    <div className={`space-y-8 ${theme}`}>
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Settings</h1>
         <p className="text-muted-foreground mt-2">
@@ -169,6 +184,7 @@ function Settings() {
             Reset to Defaults
           </button>
           <button
+            onClick={handleSaveChanges}
             data-slot="button"
             className="justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 flex items-center gap-2"
           >
@@ -214,6 +230,7 @@ function Settings() {
             </svg>
             Logout
           </button>
+
         </div>
       </div>
     </div>

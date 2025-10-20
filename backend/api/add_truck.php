@@ -50,8 +50,8 @@ $conn->begin_transaction();
 
 try {
     $image_path = null;
-    $image_upload_dir = '../uploads/images/';
-    $doc_upload_dir = '../uploads/documents/';
+    $image_upload_dir = '../uploads/images/truck_images/';
+    $doc_upload_dir = '../uploads/documents/truck_documents/';
 
     if (!is_dir($image_upload_dir)) {
         mkdir($image_upload_dir, 0777, true);

@@ -1,9 +1,16 @@
 import '../../index.css'
 import MenuHeader from '../../components/MenuHeader'
-import SummaryCards from '../../components/SummaryCards'
+import StatusCards from '../../components/StatusCards'
 import OnLeave from './OnLeave'
 import { TrendingDown, Users, Filter, Plus, UserCheck, MapPin, Phone, User, Search, ChevronDown, Ellipsis, Truck } from 'lucide-react'
 import React, { useState } from 'react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const employeeHeaderContent = [
     {
@@ -29,23 +36,23 @@ const employeeSummaryCards = [
     {
         title: "Total Employees", 
         value: 24, 
-        iconColor: "#002445", 
+        subtitle: "Active workforce", 
         icon: Users, 
-        description: "Active workforce"
+        color: "text-chart-1"
     },
     {
         title: "Deployed Personnel", 
         value: 8, 
-        iconColor: "#00a63e", 
+        subtitle: "Currently working", 
         icon: UserCheck, 
-        description: "Currently working"
+        color: "text-chart-2"
     },
     {
         title: "On Leave", 
         value: 3, 
-        iconColor: "#f14d4c", 
+        subtitle: "Employees currently on leave", 
         icon: TrendingDown, 
-        description: "Employees currently on leave"
+        color: "text-chart-3"
     }
 ]
 
@@ -98,7 +105,7 @@ const roles = [
 ]
 
 // Filter by Status
-const status = [
+const statuses = [
     {label: "All Status", value: "all"},
     {label: "On Duty", value: "on_duty"},
     {label: "Available", value: "available"},
@@ -107,20 +114,6 @@ const status = [
 
 
 function EmployeeManagement() {
-
-    const [openFilter, setOpenFilter] = useState(null);
-
-    const [selectedRole, setSelectedRole] = useState("All Roles");
-    const [selectedStatus, setSelectedStatus] = useState("All Status");
-
-    const toggleFilter = (filterName) => {
-        setOpenFilter(openFilter === filterName ? null : filterName);
-    };
-
-    const handleSelect = (filterName, value, setter) => {
-        setter(value);
-        setOpenFilter(null);
-    };
 
     // To check if the employee is a driver
     function isDriver(job) {
@@ -135,7 +128,7 @@ function EmployeeManagement() {
         <>
             <MenuHeader headerData={employeeHeaderContent} />
             <section className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-8'>
-                    <SummaryCards cards={employeeSummaryCards}/>
+                    <StatusCards cards={employeeSummaryCards}/>
             </section>
             <main className='grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8'>
                 {/* Employee Directory */}
@@ -153,42 +146,29 @@ function EmployeeManagement() {
                                     <input data-slot="input" className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pl-10" placeholder="Search by name, ID, or phone..."></input>
                                 </div>
                                 {/* Filter by Roles */}
-                                <div className="relative">
-                                    <button onClick={() => toggleFilter('role')} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent w-full sm:w-auto sm:min-w-[150px]">
-                                        <span className='mr-8'>{selectedRole}</span>
-                                        <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${openFilter === 'role' ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-                                    {openFilter === 'role' && (
-                                        <ul className="absolute top-10 left-0 mt-1 w-full bg-white border border-foreground/10 rounded-md shadow-md z-10 p-1">
-                                        {roles.map((role, index) => (
-                                            <li key={index} onClick={() => handleSelect('role', role.label, setSelectedRole)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
-                                                {role.label}
-                                            </li>
-                                        ))}
-                                        </ul>
-                                    )}
-                                </div>
+                                <Select>
+                                    <SelectTrigger className="w-max gap-6">
+                                        <SelectValue placeholder="All Roles" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all_roles">All Roles</SelectItem>
+                                        <SelectItem value="driver">Driver</SelectItem>
+                                        <SelectItem value="helper">Helper</SelectItem>
+                                    </SelectContent>
+                                </Select>
 
                                 {/* Filter by Status */}
-                                <div className="relative">
-                                    <button onClick={() => toggleFilter('status')} className="flex justify-between items-center bg-white border border-foreground/10 rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:transparent focus:transparent w-full sm:w-auto sm:min-w-[150px]">
-                                        <span className='mr-8'>{selectedStatus}</span>
-                                        <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${openFilter === 'status' ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-                                    {openFilter === 'status' && (
-                                        <ul className="absolute top-10 left-0 mt-1 w-full bg-white border border-foreground/10 rounded-md shadow-md z-10 p-1">
-                                        {status.map((item, index) => (
-                                            <li key={index} onClick={() => handleSelect('status', item.label, setSelectedStatus)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent hover:text-white cursor-pointer rounded-md">
-                                                {item.label}
-                                            </li>
-                                        ))}
-                                        </ul>
-                                    )}
-                                </div>
+                                <Select>
+                                    <SelectTrigger className="w-max gap-6">
+                                        <SelectValue placeholder="All status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all_status">All Status</SelectItem>
+                                        <SelectItem value="on_duty">On Duty</SelectItem>
+                                        <SelectItem value="available">Available</SelectItem>
+                                        <SelectItem value="off_duty">Off Duty</SelectItem>
+                                    </SelectContent>
+                                </Select>
 
                             </div>
                         </header>
