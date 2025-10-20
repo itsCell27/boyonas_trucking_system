@@ -113,7 +113,7 @@ function ServicesLargeCard() {
                                 {card.activities.map((activity, index) => {
                                     const Icon = activity.activityIcon;
                                     return (
-                                        <div key={index} class="flex items-center space-x-2 text-sm">
+                                        <div key={index} className="flex items-center space-x-2 text-sm">
                                             <Icon className={`w-4 h-4 text-${activity.iconColor}-500`} />
                                             <span>{activity.text}</span>
                                         </div>

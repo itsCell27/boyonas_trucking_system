@@ -42,7 +42,7 @@ function Dashboard() {
         <div className="flex flex-col w-full">
             <h1 className="text-2xl font-bold text-foreground mb-4">Dashboard</h1>
             {/* Dashboard content goes here */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
                 <StatusCards cards={dashboardCards} />
             </section>
             <ServiceOperations />

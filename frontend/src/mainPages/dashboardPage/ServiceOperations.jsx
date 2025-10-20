@@ -46,7 +46,7 @@ function ServiceOperations() {
                 <p className="text-muted-foreground">Select a service type to manage deliveries and operations</p>
             </section>
             {/* Service types*/}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Service type card */}
                 {/* This dynamically generates the cards from the cardsData array*/}
                 {cardsData.map((card, cardIndex) => {

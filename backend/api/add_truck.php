@@ -60,13 +60,6 @@ try {
         mkdir($doc_upload_dir, 0777, true);
     }
 
-    // if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-    //     $image_path = $image_upload_dir . basename($_FILES['image']['name']);
-    //     if (!move_uploaded_file($_FILES['image']['tmp_name'], $image_path)) {
-    //         throw new Exception('Failed to move uploaded image');
-    //     }
-    // }
-
     // ===== UPDATED: Generate unique filename for truck image =====
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         // Extract file extension from original filename
