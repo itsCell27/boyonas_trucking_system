@@ -145,15 +145,6 @@ CREATE TABLE `employees` (
   `employee_code` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `employees`
---
-
-INSERT INTO `employees` (`employee_id`, `user_id`, `full_name`, `position`, `contact_number`, `status`, `license_info`, `date_started`, `years_on_team`, `emergency_contact_name`, `emergency_contact_number`, `employee_code`) VALUES
-(4, 6, 'Luke Man', 'Driver', '0932873232', 'Idle', 'D372873293', '2024-02-20', 1, 'Fred Ger', '09329723323', 'DRV-001'),
-(5, 7, 'Star fred', 'Helper', '093278728', 'Idle', '', '2025-10-20', 0, 'Ger ted', '09833773455', 'DRV-002'),
-(6, 8, 'Juan Luna', 'Helper', '0923238724', 'Idle', '', '2018-12-11', 6, 'Ken Tomas', '09373837245', 'HLP-006');
-
 -- --------------------------------------------------------
 
 --
@@ -168,18 +159,6 @@ CREATE TABLE `employee_documents` (
   `date_uploaded` datetime NOT NULL DEFAULT current_timestamp(),
   `expiry_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `employee_documents`
---
-
-INSERT INTO `employee_documents` (`document_id`, `employee_id`, `document_type`, `file_path`, `date_uploaded`, `expiry_date`) VALUES
-(7, 4, 'NBI Clearance', '../uploads/documents/employee_documents/NBI Clearance_doc_68f62ebad99720.10576613.png', '2025-10-20 20:44:42', '2024-01-30'),
-(8, 4, 'Police Clearance', '../uploads/documents/employee_documents/Police Clearance_doc_68f62ebad9cfe4.75438564.png', '2025-10-20 20:44:42', '2027-06-30'),
-(9, 5, 'NBI Clearance', '../uploads/documents/employee_documents/NBI Clearance_doc_68f633237808c2.51374175.png', '2025-10-20 21:03:31', '2025-10-20'),
-(10, 5, 'Police Clearance', '../uploads/documents/employee_documents/Police Clearance_doc_68f6332378a1a6.58348241.png', '2025-10-20 21:03:31', '2026-07-03'),
-(11, 6, 'NBI Clearance', '../uploads/documents/employee_documents/NBI Clearance_doc_68f672db722ea4.91514506.png', '2025-10-21 01:35:23', '2020-02-04'),
-(12, 6, 'Police Clearance', '../uploads/documents/employee_documents/Police Clearance_doc_68f672db728255.01767031.png', '2025-10-21 01:35:23', '2027-10-12');
 
 -- --------------------------------------------------------
 
@@ -395,10 +374,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role_id`, `contact`) VALUES
-(1, 'Admin Cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$EJSYdBweoM1MmZ89zAvoperKen2RYvVLRI.kvCzsIIM56TXoX7dm.', 1, '09914942839'),
-(6, 'Luke Man', 'lukeman2700@gmail.com', '$2y$10$8orobNchgvx1nsAXHtKtWOFyAbjGXNwQ4YfaYd9CoTqqgX9srRlyG', 2, '0932873232'),
-(7, 'Star fred', 'starejl357@gmail.com', '$2y$10$jiIBSt4yuMMkhBVVYFF0t.DqVqb.Tr9icj68D55uaTp5nlfRtO2J2', 3, '093278728'),
-(8, 'Juan Luna', 'edcelagustin2004@gmail.com', '$2y$10$YR5NvR0zHWuBDMT3KpoAQeTKxQjXEWalfR6jm/jAsJg9FH5hklkMu', 3, '0923238724');
+(1, 'Admin Cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$EJSYdBweoM1MmZ89zAvoperKen2RYvVLRI.kvCzsIIM56TXoX7dm.', 1, '09914942839')
 
 --
 -- Indexes for dumped tables

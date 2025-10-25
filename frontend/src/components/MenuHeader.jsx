@@ -2,6 +2,7 @@ import '../index.css'
 import { ArrowLeft, Calendar, Key, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react';
 
 // This component is reusable
 // Use this format to pass values to the headerData prop
@@ -38,22 +39,34 @@ import { Button } from '@/components/ui/button'
 //</button>
 
 function MenuHeader({ headerData }) {
+
+    const [isMobileView, setIsMobileView] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobileView(window.innerWidth < 1024);
+        handleResize(); // run once immediately
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+
+
     return (
         <header className='border-b bg-card border-foreground/10 rounded-xl'>
             <div className='container mx-auto px-6 py-4'>
                 {headerData.map((header, index) => {
                     return (
                         <div key={index} className='flex items-center justify-between'>
-                            <div className="flex items-center space-x-4">
-                                <Link to={header.headerLink} data-slot="button" className='p-2 mr-6 rounded-md hover:bg-primary/90 hover:text-white shrink-0'>
+                            <div className="flex items-center space-x-4 mr-4 md:mr-0">
+                                <Link to={header.headerLink}  data-slot="button" className='p-2 mr-6 rounded-md hover:bg-primary/90 hover:text-white shrink-0 hidden lg:inline-flex'>
                                     <ArrowLeft className='h-5 w-5'/>
                                 </Link>
                                 <div>
-                                <h1 className="text-2xl font-bold text-foreground">{header.headerName}</h1>
-                                <p className="text-sm text-muted-foreground">{header.headerDescription}</p>
+                                <h1 className="text-lg lg:text-2xl font-bold text-foreground">{header.headerName}</h1>
+                                <p className="text-xs lg:text-sm text-muted-foreground">{header.headerDescription}</p>
                                 </div>
                             </div>
-                            <div className='flex items-center space-x-3'>
+                            <div className='flex flex-col sm:flex-row items-center gap-3'>
                                 {/* Check if the header has buttons*/}
                                 {Array.isArray(header.buttons) && header.buttons.length > 0 && (
                                     <>
@@ -74,17 +87,27 @@ function MenuHeader({ headerData }) {
                                             )
                                         }
 
+                                        if (button.buttonLink) {
+                                            return (
+                                                <Link key={index} to={button.buttonLink} data-slot="button" className='p-0'>
+                                                    <Button>
+                                                        <Icon className='h-4 w-4 lg:mr-2'/>{!isMobileView && button.buttonName}
+                                                    </Button>
+                                                </Link>
+                                            )
+                                        }
+
                                         if (button.isLastButton) {
                                             return (
                                                 <Button key={index} data-slot="button" onClick={button.onClick}>
-                                                    <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
+                                                    <Icon className='h-4 w-4 lg:mr-2'/>{!isMobileView && button.buttonName}
                                                 </Button>
                                             )
                                         }
 
                                         return (
                                             <Button key={index} data-slot="button" variant="outline" onClick={button.onClick}>
-                                                <Icon className='h-4 w-4 mr-2'/>{button.buttonName}
+                                                <Icon className='h-4 w-4 lg:mr-2'/>{!isMobileView && button.buttonName}
                                             </Button>
                                         )
                                     })}

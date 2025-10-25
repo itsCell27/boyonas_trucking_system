@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { TruckDetailsModal } from "./TruckDetailsModal"
 import { useState } from "react"
+import { API_BASE_URL } from "@/config"
 
 export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,8 +86,8 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
                                         <div className="flex items-center space-x-3">
                                         {vehicle.image_path ? (
                                             // put the image inside the div
-                                            <div className="w-12 aspect-square overflow-hidden border-3 border-primary bg-primary/10 rounded-lg flex items-center justify-center">
-                                                <img className="w-full h-full object-cover" src={`http://localhost/react_trucking_system/backend/${vehicle.image_path.replace('../', '')}`} />
+                                            <div className="w-12 aspect-square overflow-hidden border-2 border-primary bg-primary/10 rounded-lg flex items-center justify-center">
+                                                <img className="w-full h-full object-cover" src={`${API_BASE_URL}/${vehicle.image_path}`} />
                                             </div>
                                         ) : (
                                             <div className="w-12 aspect-square bg-primary/10 rounded-lg flex items-center justify-center">

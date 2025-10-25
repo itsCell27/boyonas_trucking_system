@@ -6,6 +6,7 @@ import ManageFleetOverview from './ManageFleetOverview'
 import NotAvailableTrucks from './NotAvailableTrucks'
 import AddTruckDialog from './AddTruckDialog';
 import { Truck, CircleCheckBig, Wrench, TriangleAlert, Filter, Plus, Download, ClockArrowUp } from 'lucide-react'
+import { API_BASE_URL } from '@/config';
 
 
 function FleetManagement() {
@@ -23,7 +24,7 @@ function FleetManagement() {
 
     const fetchFleetData = async () => {
         try {
-            const response = await fetch('http://localhost/react_trucking_system/backend/api/manage_fleet_overview.php');
+            const response = await fetch(`${API_BASE_URL}/manage_fleet_overview.php`);
             const data = await response.json();
             if (data.success) {
                 setFleetData(data.data);
@@ -45,24 +46,23 @@ function FleetManagement() {
             headerDescription: "Manage trucks, maintenance, and assignments",
             headerLink: "/app",
             buttons: [
-                {
-                    hasShadcnDialog: false,
-                    buttonName: "Filter",
-                    buttonIcon: Filter,
-                    buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-                },
-                {
-                    hasShadcnDialog: false,
-                    buttonName: "Export",
-                    buttonIcon: Download,
-                    buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-                },
+                // {
+                //     hasShadcnDialog: false,
+                //     buttonName: "Filter",
+                //     buttonIcon: Filter,
+                //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+                // },
+                // {
+                //     hasShadcnDialog: false,
+                //     buttonName: "Export",
+                //     buttonIcon: Download,
+                //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+                // },
                 {
                     hasShadcnDialog: true,
                     dialogName: AddTruckDialog,
                     buttonName: "Add Truck",
                     buttonIcon: Plus,
-                    buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm",
                     onClose: fetchFleetData,
                 }
             ]

@@ -9,7 +9,10 @@ if (!extension_loaded('mysqli')) {
     exit;
 }
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
+require_once 'config.php';
+
+// CORS and session setup
+header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Credentials: true");

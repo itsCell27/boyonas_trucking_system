@@ -11,6 +11,7 @@ import {
 import { Card, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Phone, Mail, FileText, Download } from "lucide-react";
+import { API_BASE_URL } from "@/config";
 
 function ViewProfile({ employee }) {
   const [open, setOpen] = useState(false);
@@ -18,7 +19,7 @@ function ViewProfile({ employee }) {
 
     useEffect(() => {
         if (open && employee) {
-            axios.get("http://localhost/react_trucking_system/backend/api/employee_details.php", {
+            axios.get(`${API_BASE_URL}/employee_details.php`, {
             params: {
                 employee_id: employee.employee_id,
                 user_id: employee.user_id
@@ -67,7 +68,7 @@ function ViewProfile({ employee }) {
         <Button variant="outline">View Details</Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-[95vw] md:max-w-[60vw] lg:max-w-[40vw] rounded-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Employee Profile</DialogTitle>
         </DialogHeader>
@@ -117,14 +118,14 @@ function ViewProfile({ employee }) {
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Phone</p>
-                  <p>{e.contact_number}</p>
+                  <p className="text-sm">{e.contact_number}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p>{e.email || "No email provided"}</p>
+                  <p className="text-sm">{e.email || "No email provided"}</p>
                 </div>
               </div>
             </CardContent>
@@ -203,10 +204,12 @@ function ViewProfile({ employee }) {
                     <div className="flex items-center space-x-3">
                       <FileText className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium">{doc.document_type}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Uploaded: {new Date(doc.date_uploaded).toLocaleDateString()} | Expiry:{" "}
-                          {doc.expiry_date}
+                        <p className="font-medium text-xs sm:text-lg">{doc.document_type}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Uploaded: {new Date(doc.date_uploaded).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Expiry: {doc.expiry_date}
                         </p>
                       </div>
                     </div>

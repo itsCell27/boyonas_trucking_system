@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import './App.css'
+import { Toaster } from "sonner";
 
 // menu
 import Sidebar from './Sidebar'
@@ -15,7 +16,10 @@ import Settings from './mainPages/settingsPage/Settings'
 
 // sub pages
 import ManageLipatBahay from './subPages/manageLipatBahayPage/ManageLipatBahay'
+
 import ManagePartnership from './subPages/managePartnershipPage/ManagePartnership'
+import CreatePartnershipBooking from './subPages/managePartnershipPage/CreateDelivery'
+import AssignmentPage from './subPages/managePartnershipPage/AssignmentPage'
 
 
 function App() {
@@ -36,8 +40,15 @@ function App() {
 
             {/* Sub Pages */}
             <Route path="partnership" element={<ManagePartnership />} />
+            {/* Partnership Sub Page */}
+            <Route path="/partnership/create" element={<CreatePartnershipBooking />} />
+            <Route path="assignment/:booking_id" element={<AssignmentPage />} />
+
+
             <Route path="lipat-bahay" element={<ManageLipatBahay />} />
-          </Routes>
+
+          </Routes >
+          <Toaster richColors position="top-center"/>
         </main>
       </div>
   )

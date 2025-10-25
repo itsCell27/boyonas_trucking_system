@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ChevronRight, ChevronLeft } from "lucide-react";
+import { API_BASE_URL } from "@/config";
 
 export default function AddTruckDialog({ onClose }) {
   const [open, setOpen] = useState(false);
@@ -89,7 +90,7 @@ export default function AddTruckDialog({ onClose }) {
     }
 
     try {
-      const response = await fetch("http://localhost/react_trucking_system/backend/api/add_truck.php", {
+      const response = await fetch(`${API_BASE_URL}/add_truck.php`, {
         method: "POST",
         credentials: "include",
         body: data,
@@ -134,11 +135,11 @@ export default function AddTruckDialog({ onClose }) {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Truck
+          <span className="hidden sm:inline-flex">Add Truck</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] max-w-[95vw] md:max-w-[60vw] lg:max-w-[40vw] overflow-y-auto rounded-xl">
         <DialogHeader>
           <DialogTitle>Add New Truck</DialogTitle>
           <DialogDescription>
@@ -197,37 +198,35 @@ export default function AddTruckDialog({ onClose }) {
                 />
               </div>
 
-                <div className="flex justify-evenly max-w gap-6">
-                    <div>
-                        <label className="text-sm font-medium">Status</label>
-                        <Select className="gap-2"
-                        value={formData.status}
-                        onValueChange={(value) =>
-                            setFormData((prev) => ({ ...prev, status: value }))
-                        }
-                        >
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Okay to Use">Okay to Use</SelectItem>
-                            <SelectItem value="Not Okay to Use">Not Okay to Use</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-medium">Image (optional)</label>
-                        <Input
-                        type="file"
-                        name="image"
-                        accept="image/*"
-                        onChange={handleChange}
-                        />
-                    </div>
+              <div className="flex justify-evenly max-w gap-6 flex-col sm:flex-row">
+                <div>
+                    <label className="text-sm font-medium">Status</label>
+                    <Select className="gap-2"
+                    value={formData.status}
+                    onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, status: value }))
+                    }
+                    >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Okay to Use">Okay to Use</SelectItem>
+                        <SelectItem value="Not Okay to Use">Not Okay to Use</SelectItem>
+                    </SelectContent>
+                    </Select>
                 </div>
 
-                
+                <div>
+                    <label className="text-sm font-medium">Image (optional)</label>
+                    <Input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleChange}
+                    />
+                </div>
+              </div>
 
               <div>
                 <label className="text-sm font-medium">Remarks (Optional)</label>

@@ -1,6 +1,7 @@
 
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { API_BASE_URL } from '@/config';
 
 function AddTruckModal({ onClose }) {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ function AddTruckModal({ onClose }) {
     }
 
     try {
-      const response = await fetch('http://localhost/react_trucking_system/backend/api/add_truck.php', {
+      const response = await fetch(`${API_BASE_URL}/add_truck.php`, {
         method: 'POST',
         credentials: 'include',
         body: data,

@@ -19,7 +19,7 @@ if (!isset($_GET['employee_id'])) {
 
 if (!isset($_GET['user_id'])) {
     http_response_code(400);
-    echo json_encode(['error' => 'Employee ID is required']);
+    echo json_encode(['error' => 'User ID is required']);
     exit;
 }
 
@@ -49,10 +49,11 @@ try {
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
-        $employee_details = $result->fetch_assoc();
+        $user_details = $result->fetch_assoc();
+        $employee_details = array_merge($employee_details, $user_details);
     } else {
         http_response_code(404);
-        echo json_encode(['error' => 'Employee not found']);
+        echo json_encode(['error' => 'User not found for employee']);
         exit;
     }
     $stmt->close();

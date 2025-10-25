@@ -13,6 +13,10 @@ This is a web-based trucking service system designed to manage trucking operatio
 *   Vite
 *   Tailwind CSS
 *   Lucide React (for icons)
+*   Fuse.js (for searching functionality)
+*   Axios (for making HTTP requests)
+*   Vite (for building the frontend)
+
 
 **Backend:**
 
