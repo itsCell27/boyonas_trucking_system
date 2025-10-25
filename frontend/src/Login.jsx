@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Truck, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '@/config';
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +19,7 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await fetch('http://localhost/react_trucking_system/backend/api/login.php', {
+            const response = await fetch(`${API_BASE_URL}/login.php`, {
                 method: 'POST',
                 credentials: 'include', // ADD THIS LINE
                 headers: {

@@ -9,21 +9,21 @@ const headerContent = [
         headerDescription: "Household moving & retail deliveries",
         headerLink: "/app",
         buttons: [
-            {
-                buttonName: "Schedule",
-                buttonIcon: Calendar,
-                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-            },
-            {
-                buttonName: "Filter",
-                buttonIcon: Funnel,
-                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-            },
-            {
-                buttonName: "Export",
-                buttonIcon: Download,
-                buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-            },
+            // {
+            //     buttonName: "Schedule",
+            //     buttonIcon: Calendar,
+            //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+            // },
+            // {
+            //     buttonName: "Filter",
+            //     buttonIcon: Funnel,
+            //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+            // },
+            // {
+            //     buttonName: "Export",
+            //     buttonIcon: Download,
+            //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-1 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+            // },
             {
                 buttonName: "New Delivery",
                 buttonIcon: Plus,

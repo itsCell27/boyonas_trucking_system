@@ -17,6 +17,7 @@ import ViewProfile from './ViewProfile'
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import Fuse from "fuse.js"
+import { API_BASE_URL } from '@/config.js'
 
 
 // Filter by Roles
@@ -57,7 +58,7 @@ function EmployeeManagement() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost/react_trucking_system/backend/api/fetch_employees.php',
+            const response = await axios.get(`${API_BASE_URL}/fetch_employees.php`,
                 { withCredentials: true }
             );
             setEmployees(response.data);
@@ -155,18 +156,18 @@ function EmployeeManagement() {
             headerDescription: "Manage drivers, helpers, and staff",
             headerLink: "/app",
             buttons: [
-                {
-                    buttonName: "Filter",
-                    buttonIcon: Filter,
-                    buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
-                },
+                // {
+                //     buttonName: "Filter",
+                //     buttonIcon: Filter,
+                //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
+                // },
                 {
                     hasShadcnDialog: true,
                     dialogName: AddEmployeeDialog,
                     buttonName: "Add Employee",
                     buttonIcon: Plus,
                     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary hover:bg-primary/90 hover:text-white rounded-sm",
-                    onClose: fetchEmployees
+                    onClose: fetchEmployees,
                 }
             ]
         }
@@ -227,7 +228,7 @@ function EmployeeManagement() {
                             </div>
                         </header>
                         <main className='px-6'>
-                            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                            <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
                                 {/* Employee Status Card Format */}
                                 {filteredEmployees.length === 0 ? (
                                     <div className='col-span-2 text-center text-lg text-muted-foreground p-10'>
@@ -258,7 +259,7 @@ function EmployeeManagement() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center space-x-2">
-                                                                <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 bg-primary/10 text-primary">
+                                                                <span data-slot="badge" className="sm:inline-flex hidden items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 bg-primary/10 text-primary">
                                                                     <Icon className='h-4 w-4'/>
                                                                     <span className="ml-1">{employee.position}</span>
                                                                 </span>
@@ -272,6 +273,10 @@ function EmployeeManagement() {
                                                         <div className="flex items-center justify-between">
                                                             <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                                                             {employee.status}</span>
+                                                            <span data-slot="badge" className="inline-flex sm:hidden items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;&gt;svg]:size-3 gap-1 [&amp;&gt;svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 bg-primary/10 text-primary">
+                                                                <Icon className='h-4 w-4'/>
+                                                                <span className="ml-1">{employee.position}</span>
+                                                            </span>
                                                         </div>
                                                         <div className="grid grid-cols-1 gap-2 text-sm">
                                                             <div className="flex items-center space-x-2">
@@ -309,7 +314,10 @@ function EmployeeManagement() {
                                                             <div className="text-sm">
                                                                 <div className="font-medium">License</div>
                                                                 <div className="text-muted-foreground">
-                                                                    {employee.license_info} • Expires: 
+                                                                    {employee.license_info}
+                                                                    <br/>
+                                                                    Expires: 
+                                                                    <br/>
                                                                     {employee.license_expiration ? (
                                                                         <span> {employee.license_expiration}</span>
                                                                     ) : (
@@ -318,7 +326,7 @@ function EmployeeManagement() {
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                                             <div>
                                                                 <div className="font-medium">Date Started</div>
                                                                 <div className="text-muted-foreground">{employee.date_started}</div>

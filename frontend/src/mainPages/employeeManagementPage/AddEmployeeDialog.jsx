@@ -14,6 +14,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { API_BASE_URL } from "@/config";
 
 export function AddEmployeeDialog({ onClose }) {
   const [open, setOpen] = useState(false);
@@ -68,7 +69,7 @@ export function AddEmployeeDialog({ onClose }) {
     }
 
     try {
-      const response = await fetch("http://localhost/react_trucking_system/backend/api/add_employee.php", {
+      const response = await fetch(`${API_BASE_URL}/add_employee.php`, {
         method: "POST",
         credentials: "include",
         body: data,
@@ -128,11 +129,11 @@ export function AddEmployeeDialog({ onClose }) {
         <DialogTrigger asChild>
             <Button className="gap-2">
             <Plus className="h-4 w-4" />
-            Add Employee
+            <span className="hidden sm:inline-flex">Add Employee</span>
             </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-md overflow-y-auto max-h-[80vh]">
+        <DialogContent className="max-h-[90vh] max-w-[95vw] md:max-w-[60vw] lg:max-w-[40vw] overflow-y-auto rounded-xl">
             <DialogHeader>
             <DialogTitle>Add New Employee</DialogTitle>
             <DialogDescription>
@@ -163,32 +164,34 @@ export function AddEmployeeDialog({ onClose }) {
                             required
                         />
                     </div>
-                    <div>
-                        <label className="text-sm font-medium">Position</label>
-                        <Select
-                            value={formData.position}
-                            onValueChange={(value) =>
-                            setFormData((prev) => ({ ...prev, position: value }))
-                            }
-                        >
-                            <SelectTrigger>
-                            <SelectValue placeholder="Select Position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            <SelectItem value="Driver">Driver</SelectItem>
-                            <SelectItem value="Helper">Helper</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium">Date Started</label>
-                        <Input
-                            name="date_started"
-                            type="date"
-                            value={formData.date_started}
-                            onChange={handleChange}
-                            required
-                        />
+                    <div className="col-span-2 flex justify-evenly gap-6 flex-col sm:flex-row">
+                      <div className="flex-1">
+                          <label className="text-sm font-medium">Position</label>
+                          <Select
+                              value={formData.position}
+                              onValueChange={(value) =>
+                              setFormData((prev) => ({ ...prev, position: value }))
+                              }
+                          >
+                              <SelectTrigger>
+                              <SelectValue placeholder="Select Position" />
+                              </SelectTrigger>
+                              <SelectContent>
+                              <SelectItem value="Driver">Driver</SelectItem>
+                              <SelectItem value="Helper">Helper</SelectItem>
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <div className="flex-1">
+                          <label className="text-sm font-medium">Date Started</label>
+                          <Input
+                              name="date_started"
+                              type="date"
+                              value={formData.date_started}
+                              onChange={handleChange}
+                              required
+                          />
+                      </div>
                     </div>
                     <div className="col-span-2">
                         <label className="text-sm font-medium">Employee Code</label>
@@ -278,7 +281,7 @@ export function AddEmployeeDialog({ onClose }) {
                     </div>
                 </div>
 
-                <div className="flex gap-2 pt-4">
+                <div className="flex gap-6 pt-4">
                     <Button
                         type="button"
                         variant="outline"

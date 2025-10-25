@@ -42,7 +42,7 @@ function Sidebar() {
                 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
                 md:translate-x-0
                 ${isCollapsed ? "w-16" : "w-64"}`}>
-                <div className="sticky top-0 left-0">
+                <div className="sticky top-0 left-0 max-h-[100vh]">
                     {/* Profile */}
                     <section className="flex items-center justify-between p-4 border-b border-sidebar-border">
                         <div className={`${isCollapsed ? "hidden " : "flex items-center justify-center space-x-3"}`}>

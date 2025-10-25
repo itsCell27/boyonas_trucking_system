@@ -5,13 +5,14 @@ import { FileText, Download, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { API_BASE_URL } from "@/config"
 
 export function TruckDetailsModal({ truck, open, onOpenChange }) {
   const [truckDetails, setTruckDetails] = useState(null);
 
   useEffect(() => {
     if (open) {
-      axios.get(`http://localhost/react_trucking_system/backend/api/truck_details.php?truck_id=${truck.truck_id}`)
+      axios.get(`${API_BASE_URL}/truck_details.php?truck_id=${truck.truck_id}`)
         .then(response => {
           setTruckDetails(response.data);
         })
@@ -75,7 +76,7 @@ export function TruckDetailsModal({ truck, open, onOpenChange }) {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Document Status</p>
-                    <Badge className={`mt-1 ${getStatusColor(truckDetails.document_status)}`}>
+                    <Badge className={`mt-1 ${getStatusColor(truckDetails.document_status)} pointer-events-none`}>
                       {truckDetails.document_status}
                     </Badge>
                   </div>

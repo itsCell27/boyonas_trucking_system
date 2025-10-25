@@ -421,49 +421,7 @@ const LipatBahayBooking = () => {
       </div>
       <div>
         <div className="space-y-6">
-          <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
-            <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
-              <div data-slot="card-title" className="leading-none font-semibold flex items-center space-x-2">
-                <House className="h-5 w-5" />
-                <span>Service Types</span>
-              </div>
-              <div data-slot="card-description" className="text-muted-foreground text-sm">Breakdown by household size</div>
-            </div>
-            <div data-slot="card-content" className="px-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Studio/1BR</div>
-                    <div className="text-xs text-muted-foreground">12 bookings this month</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-sm">₱2,800</div>
-                    <div className="text-xs text-muted-foreground">Average rate</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">2-3 Bedroom</div>
-                    <div className="text-xs text-muted-foreground">8 bookings this month</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-sm">₱3,800</div>
-                    <div className="text-xs text-muted-foreground">Average rate</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">4+ Bedroom</div>
-                    <div className="text-xs text-muted-foreground">3 bookings this month</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-sm">₱5,200</div>
-                    <div className="text-xs text-muted-foreground">Average rate</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          
           <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
             <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
               <div data-slot="card-title" className="leading-none font-semibold flex items-center space-x-2">

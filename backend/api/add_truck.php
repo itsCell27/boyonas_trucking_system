@@ -1,5 +1,8 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+require_once 'config.php';
+
+// CORS and session setup
+header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Credentials: true");
@@ -50,8 +53,8 @@ $conn->begin_transaction();
 
 try {
     $image_path = null;
-    $image_upload_dir = '../uploads/images/truck_images/';
-    $doc_upload_dir = '../uploads/documents/truck_documents/';
+    $image_upload_dir = UPLOAD_ROOT . TRUCK_IMAGES_DIR;
+    $doc_upload_dir = UPLOAD_ROOT . TRUCK_DOCUMENTS_DIR;
 
     if (!is_dir($image_upload_dir)) {
         mkdir($image_upload_dir, 0777, true);

@@ -1,6 +1,9 @@
 <?php
+
+require_once 'config.php';
+
 // CORS and session setup
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Credentials: true");
@@ -70,7 +73,7 @@ try {
     $employee_id = $stmt->insert_id;
 
     // Handle file uploads and insert into employee_documents
-    $doc_upload_dir = '../uploads/documents/employee_documents/';
+    $doc_upload_dir = UPLOAD_ROOT . EMPLOYEE_DOCS_DIR;
     if (!is_dir($doc_upload_dir)) {
         mkdir($doc_upload_dir, 0777, true);
     }
@@ -79,7 +82,8 @@ try {
         if (isset($_FILES[$file_key]) && $_FILES[$file_key]['error'] === UPLOAD_ERR_OK) {
             $file = $_FILES[$file_key];
             $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $unique_filename = uniqid($doc_type . '_doc_', true) . '.' . $file_extension;
+            $original_filename = pathinfo($file['name'], PATHINFO_FILENAME);
+            $unique_filename = uniqid($original_filename . '_', true) . '.' . $file_extension;
             $file_path = $upload_dir . $unique_filename;
 
             if (move_uploaded_file($file['tmp_name'], $file_path)) {

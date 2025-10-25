@@ -1,0 +1,12 @@
+# Deny access to .env files
+<Files ".env">
+  Require all denied
+</Files>
+
+# Deny access to config and logs
+<FilesMatch "(\.ini|\.log|\.bak|\.config|\.sql|config\.php)$">
+  Require all denied
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
