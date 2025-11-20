@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight, Truck, LayoutDashboard, Wrench, Users, BarChart3, FileText, Settings, Menu, X } from "lucide-react"
-import './index.css'
 import React, { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 
@@ -38,7 +37,7 @@ function Sidebar() {
                 <div onClick={toggleMobileMenu} className="md:hidden fixed inset-0 bg-black/50 z-10" />
             )}
 
-            <nav className={`fixed top-0 left-0 md:relative flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 z-20
+            <nav className={`fixed top-0 left-0 md:relative flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 z-20 h-screen
                 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
                 md:translate-x-0
                 ${isCollapsed ? "w-16" : "w-64"}`}>

@@ -16,4 +16,8 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
   throw new Exception("Connection failed: " . $conn->connect_error);
 }
+
+// Set timezone for both PHP and MySQL
+date_default_timezone_set('Asia/Manila');
+$conn->query("SET time_zone = '+08:00'");
 ?>

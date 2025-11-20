@@ -38,6 +38,8 @@ const dashboardCards = [
 ]
 
 function Dashboard() {
+
+
     return (
         <div className="flex flex-col w-full">
             <h1 className="text-2xl font-bold text-foreground mb-4">Dashboard</h1>

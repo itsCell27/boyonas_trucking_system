@@ -3,23 +3,23 @@ import './App.css'
 import { Toaster } from "sonner";
 
 // menu
-import Sidebar from './Sidebar'
+import Sidebar from '@/pages/Sidebar'
 
 // main pages
-import Dashboard from './mainPages/dashboardPage/Dashboard'
-import Services from './mainPages/servicesPage/Services'
-import Fleet from './mainPages/fleetManagementPage/FleetManagement'
-import Employees from './mainPages/employeeManagementPage/EmployeeManagement'
-import Operations from './mainPages/operationsPage/Operations'
-import SOAGeneration from './mainPages/soaGenerationPage/SOAGeneration'
-import Settings from './mainPages/settingsPage/Settings'
+import Dashboard from '@/mainPages/dashboardPage/Dashboard'
+import Services from '@/mainPages/servicesPage/Services'
+import Fleet from '@/mainPages/fleetManagementPage/FleetManagement'
+import Employees from '@/mainPages/employeeManagementPage/EmployeeManagement'
+import Operations from '@/mainPages/operationsPage/Operations'
+import SOAGeneration from '@/mainPages/soaGenerationPage/SOAGeneration'
+import Settings from '@/mainPages/settingsPage/Settings'
 
 // sub pages
-import ManageLipatBahay from './subPages/manageLipatBahayPage/ManageLipatBahay'
+import ManageLipatBahay from '@/subPages/manageLipatBahayPage/ManageLipatBahay'
 
-import ManagePartnership from './subPages/managePartnershipPage/ManagePartnership'
-import CreatePartnershipBooking from './subPages/managePartnershipPage/CreateDelivery'
-import AssignmentPage from './subPages/managePartnershipPage/AssignmentPage'
+import ManagePartnership from '@/subPages/managePartnershipPage/ManagePartnership'
+import CreatePartnershipBooking from '@/subPages/managePartnershipPage/CreateDelivery'
+import AssignmentPage from '@/subPages/managePartnershipPage/AssignmentPage'
 
 
 function App() {
@@ -46,6 +46,7 @@ function App() {
 
 
             <Route path="lipat-bahay" element={<ManageLipatBahay />} />
+            
 
           </Routes >
           <Toaster richColors position="top-center"/>

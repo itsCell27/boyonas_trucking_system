@@ -1,15 +1,10 @@
 <?php
-require_once 'config.php';
+require_once 'cors.php';
+require_once 'rate_limiter.php';
+require 'db.php';
 
-// CORS and session setup
-header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Credentials: true");
-
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
+// Rate limit: 5 attempts per 5 minutes (300 seconds)
+rateLimit('login', 5, 300);
 
 session_set_cookie_params([
     'lifetime' => 86400,

@@ -1,4 +1,5 @@
 <?php
+require_once 'security_headers.php';
 require_once 'config.php';
 
 header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
