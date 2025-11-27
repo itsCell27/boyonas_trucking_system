@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { TruckDetailsModal } from "./TruckDetailsModal"
 import { useState } from "react"
 import { API_BASE_URL } from "@/config"
+import axios from "axios"
 
 export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,6 +59,25 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
         }
     };
 
+    const updateTruckStatus = async (truckId, newStatus) => {
+        try {
+            const res = await axios.post(
+                `${API_BASE_URL}/update_truck_status.php`,
+                { truck_id: truckId, operational_status: newStatus },
+                { withCredentials: true }
+            );
+
+            if (res.data.success) {
+                fetchFleetData(); // refresh parent FleetManagement
+            } else {
+                console.error("Failed to update truck:", res.data);
+            }
+        } catch (err) {
+            console.error("Update error:", err);
+        }
+    };
+
+
     return (
     <>
         <div className='bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm'>
@@ -80,7 +100,7 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
                         const statusColor = getStatusColor(vehicle.operational_status);
                         return (
                             
-                            <Card key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800 w-full">
+                            <Card key={index} className="bg-background w-full">
                                 <CardHeader className="pb-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
@@ -107,18 +127,32 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
                                         <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
+                                                <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem >
-                                            Available
+                                            <DropdownMenuItem
+                                                disabled={vehicle.operational_status !== "Available"}
+                                                className={
+                                                    vehicle.operational_status !== "Available"
+                                                        ? "opacity-40 cursor-not-allowed"
+                                                        : "hover:bg-accent"
+                                                }
+                                                onClick={() => updateTruckStatus(vehicle.truck_id, "Maintenance")}
+                                            >
+                                                Set to Maintenance
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem >
-                                            On Delivery
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem >
-                                            Maintenance
+
+                                            <DropdownMenuItem
+                                                disabled={vehicle.operational_status !== "Maintenance"}
+                                                className={
+                                                    vehicle.operational_status !== "Maintenance"
+                                                        ? "opacity-40 cursor-not-allowed"
+                                                        : "hover:bg-accent"
+                                                }
+                                                onClick={() => updateTruckStatus(vehicle.truck_id, "Available")}
+                                            >
+                                                Set to Available
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                         </DropdownMenu>

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { API_BASE_URL } from "@/config"
+import { DocumentPreview } from "@/components/DocumentPreview"; 
+import { Eye } from "lucide-react"
 
 export function TruckDetailsModal({ truck, open, onOpenChange }) {
   const [truckDetails, setTruckDetails] = useState(null);
@@ -36,6 +38,17 @@ export function TruckDetailsModal({ truck, open, onOpenChange }) {
         return "bg-gray-100 text-gray-800"
     }
   }
+
+  console.log('Truck Details:', truckDetails);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  
+  const handleViewDocument = (filePath) => {
+    const url = `${API_BASE_URL}/${filePath}`;
+    setSelectedDocument(url);
+    setPreviewOpen(true);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,8 +121,8 @@ export function TruckDetailsModal({ truck, open, onOpenChange }) {
                             <Badge className={`mt-1 ${getStatusColor(doc.status)} pointer-events-none`}>{doc.status}</Badge>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Download className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" onClick={() => handleViewDocument(doc.file_path)}>
+                              <Eye className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
@@ -121,6 +134,12 @@ export function TruckDetailsModal({ truck, open, onOpenChange }) {
                 </CardContent>
               </Card>
             </div>
+
+            <DocumentPreview
+              open={previewOpen}
+              onOpenChange={setPreviewOpen}
+              document={selectedDocument}
+            />
           </>
         ) : (
           <DialogHeader>

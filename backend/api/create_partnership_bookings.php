@@ -26,10 +26,12 @@ if (!isset($_SESSION['user_id'])) {
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Validate required fields
-if (empty($data['dr_number']) || empty($data['partner_name']) || empty($data['route_from']) || 
-    empty($data['route_to']) || empty($data['scheduled_start']) || empty($data['deadline']) || 
-    !isset($data['estimated_weight']) || empty($data['category']) || empty($data['status']) || 
-    empty($data['created_by'])) {
+if (
+    empty($data['dr_number']) || empty($data['partner_name']) || empty($data['route_from']) ||
+    empty($data['route_to']) || empty($data['scheduled_start']) || empty($data['deadline']) ||
+    !isset($data['estimated_weight']) || empty($data['category']) || empty($data['status']) ||
+    empty($data['created_by'])
+) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing required fields']);
     exit;
@@ -60,24 +62,57 @@ try {
     exit;
 }
 
-// Insert into database
+// Insert booking
 try {
-    $stmt = $conn->prepare("INSERT INTO bookings (service_type, dr_number, partner_name, route_from, route_to, scheduled_start, deadline, estimated_weight, category, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssdssi", $data['service_type'], $data['dr_number'], $data['partner_name'], $data['route_from'], $data['route_to'], $data['scheduled_start'], $data['deadline'], $data['estimated_weight'], $data['category'], $data['status'], $data['created_by']);
+    $stmt = $conn->prepare("
+        INSERT INTO bookings 
+        (service_type, dr_number, partner_name, route_from, route_to, scheduled_start, deadline, 
+         estimated_weight, category, status, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "sssssssdssi",
+        $data['service_type'],
+        $data['dr_number'],
+        $data['partner_name'],
+        $data['route_from'],
+        $data['route_to'],
+        $data['scheduled_start'],
+        $data['deadline'],
+        $data['estimated_weight'],
+        $data['category'],
+        $data['status'],   // Usually "Pending Assignment"
+        $data['created_by']
+    );
 
     if ($stmt->execute()) {
         $booking_id = $stmt->insert_id;
+        $stmt->close();
+
+        // ----------------------------------------------------
+        // INSERT STATUS LOG (Scheduled)
+        // ----------------------------------------------------
+        $log_stmt = $conn->prepare("
+            INSERT INTO status_logs (booking_id, status, remarks, updated_by)
+            VALUES (?, 'Scheduled', 'Booking successfully created', ?)
+        ");
+
+        $log_stmt->bind_param("ii", $booking_id, $data['created_by']);
+        $log_stmt->execute();
+        $log_stmt->close();
+
         echo json_encode([
-            'success' => true, 
+            'success' => true,
             'booking_id' => $booking_id,
-            'id' => $booking_id  // keeping 'id' for backwards compatibility
+            'id' => $booking_id
         ]);
     } else {
         http_response_code(500);
         echo json_encode(['error' => 'Database error: ' . $stmt->error]);
+        $stmt->close();
     }
-    
-    $stmt->close();
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);

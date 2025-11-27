@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Eye, Download, Send, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const soaRecords = [
   {
@@ -45,15 +46,15 @@ const getStatusClass = (status) => {
 
 function SOATable({ onPreview }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-card border p-6 rounded-lg shadow-sm">
       <h2 className="text-xl font-semibold mb-4">Statement of Account Records</h2>
       <div className='space-y-4'>
         {soaRecords.map((record) => (
-          <div key={record.id} className='border border-gray-200 rounded-lg p-4 space-y-3'>
+          <div key={record.id} className='bg-background border rounded-lg p-4 space-y-3'>
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-semibold text-indigo-600">{record.id}</div>
-                <div className="text-sm text-gray-600">{record.client}</div>
+                <div className="font-semibold">{record.id}</div>
+                <div className="text-sm text-muted-foreground">{record.client}</div>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getStatusClass(record.status)}`}>
@@ -64,38 +65,38 @@ function SOATable({ onPreview }) {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <div className="text-gray-500">Period</div>
-                <div className="font-medium text-gray-800">{record.period}</div>
+                <div className="text-muted-foreground">Period</div>
+                <div className="font-medium">{record.period}</div>
               </div>
               <div>
-                <div className="text-gray-500">Amount</div>
-                <div className="font-medium text-lg text-gray-800">{record.amount}</div>
+                <div className="text-muted-foreground">Amount</div>
+                <div className="font-medium text-lg">{record.amount}</div>
               </div>
               <div>
-                <div className="text-gray-500">Due Date</div>
-                <div className="font-medium text-gray-800">{record.dueDate}</div>
+                <div className="text-muted-foreground">Due Date</div>
+                <div className="font-medium">{record.dueDate}</div>
               </div>
               <div>
-                <div className="text-gray-500">Deliveries</div>
-                <div className="font-medium text-gray-800">{record.deliveries}</div>
+                <div className="text-muted-foreground">Deliveries</div>
+                <div className="font-medium">{record.deliveries}</div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-200">
-              <div className="text-sm text-gray-500">Generated: {record.generatedDate}</div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-muted-foreground">
+              <div className="text-sm">Generated: {record.generatedDate}</div>
               <div className="flex items-center gap-2">
-                <button onClick={() => onPreview(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-accent hover:text-white">
+                <Button onClick={() => onPreview(record)} variant="outline">
                   <Eye size={14} />
                   <span>Preview</span>
-                </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-accent hover:text-white">
+                </Button>
+                <Button variant="outline">
                   <Download size={14} />
                   <span>Download</span>
-                </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90">
+                </Button>
+                <Button>
                   <Send size={14} />
                   <span>Send</span>
-                </button>
+                </Button>
                 {/* <button className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-accent hover:text-white">
                   <MoreHorizontal size={14} />
                 </button> */}

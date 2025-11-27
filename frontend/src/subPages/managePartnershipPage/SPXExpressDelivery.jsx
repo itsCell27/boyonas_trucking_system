@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogAction
+  AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogTrigger, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -22,8 +22,8 @@ import { useDebounce } from "@/lib/use-debounce"; // optional small hook (show b
 import { toast } from "sonner"; // you already use sonner elsewhere
 import UploadDocumentBooking from "./UploadDocumentBooking"; 
 import ViewBookingDetails from "./ViewBookingDetails"; 
+import { format } from 'date-fns';
 import { Spinner } from "@/components/ui/spinner"
-
 
 const STATUSES = ["Pending Assignment", "Assigned", "Completed", "Cancelled"];
 
@@ -200,11 +200,44 @@ export default function SPXExpressDelivery() {
     }
   };
 
+  // Add this near submitAssign / other helper functions
+  const cancelBooking = async (booking) => {
+    if (!booking) return;
+    // Prevent cancelling if already cancelled or completed
+    if (booking.status === "Cancelled") {
+      toast.info("Booking already cancelled.");
+      return;
+    }
+    if (booking.status === "Completed") {
+      toast.error("Cannot cancel a completed booking.");
+      return;
+    }
+
+    try {
+      const { data } = await axios.post(
+        `${API_BASE_URL}/cancel_booking.php`,
+        { booking_id: booking.booking_id },
+        { withCredentials: true, headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data?.success) {
+        toast.success("Booking cancelled.");
+        await loadBookings(); // refresh list so Upload/Cancel become disabled
+      } else {
+        toast.error(data?.message || "Failed to cancel booking.");
+      }
+    } catch (e) {
+      console.error("Cancel booking error:", e);
+      toast.error(e?.response?.data?.message || "Server error cancelling booking.");
+    }
+  };
+
+
   
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      <div className="lg:col-span-3">
+      <div className="lg:col-span-4">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
@@ -264,18 +297,28 @@ export default function SPXExpressDelivery() {
                             <span className="text-xs border rounded px-2 py-0.5">{b.status}</span>
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Scheduled: {new Date(b.scheduled_start).toLocaleString()}
+                            Scheduled Start: {format(new Date(b.scheduled_start), 'MMM d, yyyy, h:mm a')}
                           </div>
                         </div>
                       </div>
-
+                      <div className="flex items-center gap-4">
                       {b.status === "Pending Assignment" ? (
-                        <Button
-                          size="sm"
-                          onClick={() => navigate(`/app/assignment/${b.booking_id}`)} // ✅ navigate to AssignmentPage
-                        >
-                          Assign
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/app/assignment/${b.booking_id}`)} // ✅ navigate to AssignmentPage
+                          >
+                            Assign
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openViewDialog(b)}
+                          >
+                            View
+                          </Button>
+                        </>
                       ) : (
                         <Button
                           size="sm"
@@ -285,7 +328,7 @@ export default function SPXExpressDelivery() {
                           View
                         </Button>
                       )}
-
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,17 +351,67 @@ export default function SPXExpressDelivery() {
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Documents:</span>
-                        <span className="text-sm text-muted-foreground">—</span>
+                        {b.documents == null ? (
+                          <span className="text-sm text-muted-foreground">No documents uploaded</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">{b.document_count} document(s) uploaded</span>
+                        )}
                       </div>
-                      <Button 
-                          size="sm" 
-                          variant="outline" 
+                      {/* Upload and Cancel buttons */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => openUploadDialog(b)}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload
-                      </Button>
+                          disabled={b.status === "Cancelled"}
+                          title={b.status === "Cancelled" ? "Upload disabled — booking cancelled" : "Upload documents"}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload
+                        </Button>
+
+                        {/* Cancel Button with Confirmation Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={b.status === "Cancelled" || b.status === "Completed"}
+                              className={
+                                b.status === "Cancelled"
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }
+                            >
+                              Cancel
+                            </Button>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. The booking will be marked as
+                                <span className="font-semibold"> Cancelled</span>, and uploading
+                                documents for this booking will be disabled permanently.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Close</AlertDialogCancel>
+
+                              <AlertDialogAction
+                                onClick={() => cancelBooking(b)} // <-- calls your function
+                                className="bg-destructive text-white hover:bg-destructive/90"
+                              >
+                                Yes, cancel it
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
+                      </div>
+
                     </div>
                   </div>
                 ))}
@@ -329,7 +422,7 @@ export default function SPXExpressDelivery() {
       </div>
 
       {/* Right column (kept from your mock) */}
-      <div className="space-y-6">
+      {/* <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -374,7 +467,7 @@ export default function SPXExpressDelivery() {
             <div className="flex justify-between"><span className="text-muted-foreground">Service Type</span><span>E-commerce</span></div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Assign Dialog */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>

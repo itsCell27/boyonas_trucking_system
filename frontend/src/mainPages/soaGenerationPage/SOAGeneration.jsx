@@ -29,7 +29,7 @@ const SOAGeneration = () => {
   ];
 
   return (
-    <div className="flex-1 bg-gray-50">
+    <div className="flex-1 pt-10 md:pt-0">
       <MenuHeader headerData={headerData} />
       <div className="mt-6 lg:grid lg:grid-cols-3 lg:gap-6">
         <div className="lg:col-span-2">

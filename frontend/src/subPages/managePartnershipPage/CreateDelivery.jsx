@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,13 @@ import { ArrowRight, ArrowLeft } from "lucide-react"
 import axios from "axios"
 import { API_BASE_URL } from "../../config"
 import AssignmentPage from "./AssignmentPage"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner";
 
 export default function CreatePartnershipBooking() {
@@ -16,7 +23,7 @@ export default function CreatePartnershipBooking() {
   const [formData, setFormData] = useState({
     service_type: "Partnership",
     dr_number: "",
-    partner_name: "",
+    partner_name: "SPX Express",
     route_from: "",
     route_to: "",
     scheduled_start: "",
@@ -27,12 +34,65 @@ export default function CreatePartnershipBooking() {
     created_by: 1,
   })
 
+  // capacity states
+  const [maxCapacity, setMaxCapacity] = useState(null)      // NEW
+  const [isWeightValid, setIsWeightValid] = useState(true)  // NEW
+
+  // Fetch the highest available truck capacity once (or every time step becomes 2)
+  useEffect(() => {
+    // fetch when the user moves to step 2
+    if (step !== 2) return;
+
+    const fetchCapacity = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/find_highest_capacity_truck.php`, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (res.data && res.data.success) {
+          setMaxCapacity(res.data.max_capacity || 0);
+          // Re-validate current estimated weight if present
+          if (formData.estimated_weight) {
+            setIsWeightValid(Number(formData.estimated_weight) <= (res.data.max_capacity || 0));
+          }
+        } else {
+          setMaxCapacity(0);
+          console.warn("Could not get max capacity", res.data);
+        }
+      } catch (err) {
+        console.error(err);
+        setMaxCapacity(0);
+      }
+    }
+
+    fetchCapacity();
+  }, [step]); // fetch when step changes to 2
+
+  // Update handleInputChange to validate estimated_weight
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
+
+    // maintain original behavior
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
+
+    // if estimated_weight changed -> validate
+    if (name === "estimated_weight") {
+      const num = Number(value);
+      if (Number.isNaN(num) || num < 0) {
+        setIsWeightValid(false);
+        return;
+      }
+      if (maxCapacity === null) {
+        // capacity not loaded yet — optimistic allow but warn
+        setIsWeightValid(true);
+      } else {
+        setIsWeightValid(num <= Number(maxCapacity));
+      }
+    }
   }
 
   const handleNext = () => {
@@ -57,6 +117,11 @@ export default function CreatePartnershipBooking() {
       return;
     }
 
+    if (maxCapacity !== null && Number(formData.estimated_weight) > Number(maxCapacity)) {
+      toast.error(`Estimated weight exceeds the max available truck capacity (${maxCapacity} kg).`);
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/create_partnership_bookings.php`,
@@ -74,7 +139,9 @@ export default function CreatePartnershipBooking() {
 
       if (response.data.success) {
         toast.success(`Booking #${response.data.booking_id} created successfully!`);
-        navigate(`/app/assignment/${response.data.booking_id}`);
+        navigate(`/app/assignment/${response.data.booking_id}`, {
+          state: { fromCreateDelivery: true }
+        });
       }
     } catch (error) {
       toast.error(
@@ -82,6 +149,8 @@ export default function CreatePartnershipBooking() {
       );
     }
   };
+
+  const categories = ["Electronics", "Construction Materials", "Furniture", "Appliances", "General Cargo"];
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -141,20 +210,25 @@ export default function CreatePartnershipBooking() {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  name="category"
+
+                <Select
                   value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                  onValueChange={(value) =>
+                    handleInputChange({
+                      target: { name: "category", value }
+                    })
+                  }
                 >
-                  <option value="">Select a category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Construction Materials">Construction Materials</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Appliances">Appliances</option>
-                  <option value="General Cargo">General Cargo</option>
-                </select>
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-4 pt-6">
@@ -220,7 +294,19 @@ export default function CreatePartnershipBooking() {
                   placeholder="e.g., 5000"
                   value={formData.estimated_weight}
                   onChange={handleInputChange}
+                  min={0}
                 />
+                <p className={`text-sm mt-1 ${isWeightValid ? "text-muted-foreground" : "text-red-500"}`}>
+                  {maxCapacity === null
+                    ? "Checking available truck capacity..."
+                    : (maxCapacity === 0
+                        ? "No trucks currently available."
+                        : `Highest truck capacity: ${maxCapacity} kg`
+                  )}
+                </p>
+                {!isWeightValid && (
+                  <p className="text-sm text-red-500">Estimated weight exceeds the current max available truck capacity.</p>
+                )}
               </div>
 
               <div className="flex gap-4 pt-6">
@@ -228,7 +314,7 @@ export default function CreatePartnershipBooking() {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button className="flex-1" onClick={handleSubmit}>
+                <Button className="flex-1" onClick={handleSubmit} disabled={!isWeightValid || (maxCapacity === 0)}>
                   Create & Assign Driver
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

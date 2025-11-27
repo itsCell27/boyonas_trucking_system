@@ -16,7 +16,7 @@ export default function NotAvailableTrucks({ trucks }) {
       <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm">
         <header className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
           <div className="leading-none font-semibold flex items-center space-x-2">
-            <Wrench className="w-5 h-5" />
+            <Wrench className="w-5 h-5 text-chart-3" />
             <span>Not Available Trucks</span>
           </div>
           <div
@@ -42,7 +42,7 @@ export default function NotAvailableTrucks({ trucks }) {
                   >
                     <div className="flex flex-col gap-2 justify-between">
                       <div className="flex items-center space-x-2">
-                        <Wrench className="h-4 w-4 text-accent" />
+                        <Wrench className="h-4 w-4 text-destructive" />
                         <span className="font-semibold">{truck.plate_number}</span>
                       </div>
 

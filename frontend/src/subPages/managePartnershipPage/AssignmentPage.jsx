@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
+import { useLocation } from "react-router-dom";
 
 export default function AssignmentPage() {
   const navigate = useNavigate()
@@ -34,6 +34,10 @@ export default function AssignmentPage() {
   const [booking, setBooking] = useState(null)
 
   const [noAvailableDialog, setNoAvailableDialog] = useState({ open: false, message: "" })
+
+  // to check if navigated from create delivery page
+  const location = useLocation();
+  const fromCreateDelivery = location.state?.fromCreateDelivery || false;
 
   // fetch available trucks and employees
   const [drivers, setDrivers] = useState([])
@@ -356,7 +360,7 @@ export default function AssignmentPage() {
                   disabled={assigning}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {fromCreateDelivery ? "Assign Later" : "Back"}
                 </Button>
                 <Button 
                   className="flex-1" 

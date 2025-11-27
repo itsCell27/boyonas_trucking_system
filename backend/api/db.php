@@ -20,4 +20,3 @@ if ($conn->connect_error) {
 // Set timezone for both PHP and MySQL
 date_default_timezone_set('Asia/Manila');
 $conn->query("SET time_zone = '+08:00'");
-?>

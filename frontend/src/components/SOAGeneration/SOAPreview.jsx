@@ -20,13 +20,13 @@ const getStatusClass = (status) => {
 const SOAPreview = ({ record }) => {
   if (!record) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">SOA Preview</h2>
+      <div className="bg-card p-6 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">SOA Preview</h2>
         <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-foreground/10 rounded-lg">
           <div className="text-center">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Select an SOA to preview</h3>
-            <p className="mt-1 text-sm text-gray-500">The document preview will appear here.</p>
+            <FileText className="mx-auto h-12 w-12" />
+            <h3 className="mt-2 text-sm font-medium text-muted-foreground">Select an SOA to preview</h3>
+            <p className="mt-1 text-sm">The document preview will appear here.</p>
           </div>
         </div>
       </div>
@@ -44,10 +44,10 @@ const SOAPreview = ({ record }) => {
   const total = subtotal + tax;
 
   return (
-    <div className="bg-white flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm">
+    <div className="bg-card flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
       <div className="px-6">
         <div className="leading-none font-semibold flex items-center justify-between">
-          <span className="flex items-center gap-2 text-gray-800">
+          <span className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             SOA Preview
           </span>
@@ -60,13 +60,13 @@ const SOAPreview = ({ record }) => {
         <div className="space-y-4">
           <div className="text-center border-b border-foreground/10 pb-4">
             <h2 className="text-xl font-bold">BOYONAS TRUCKING SERVICE</h2>
-            <p className="text-sm text-gray-500">Statement of Account</p>
+            <p className="text-sm text-muted-foreground">Statement of Account</p>
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <div className="font-medium text-gray-800">Bill To:</div>
+              <div className="font-medium text-muted-foreground">Bill To:</div>
               <div>{record.client}</div>
-              <div className="text-gray-500">123 Business Ave, Makati City</div>
+              <div>123 Business Ave, Makati City</div>
             </div>
             <div className="text-right">
               <div><span className="font-medium">SOA #:</span> {record.id}</div>
@@ -77,15 +77,15 @@ const SOAPreview = ({ record }) => {
           </div>
         </div>
         <div className="space-y-3">
-          <div className="font-medium text-gray-800">Service Details:</div>
+          <div className="font-medium text-muted-foreground">Service Details:</div>
           <div className="border border-foreground/10 rounded-lg overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-card">
                 <tr>
-                  <th className="text-left p-2 font-medium text-gray-600">Description</th>
-                  <th className="text-center p-2 font-medium text-gray-600">Qty</th>
-                  <th className="text-right p-2 font-medium text-gray-600">Rate</th>
-                  <th className="text-right p-2 font-medium text-gray-600">Amount</th>
+                  <th className="text-left p-2 font-medium text-muted-foreground">Description</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Qty</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground">Rate</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground">Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,9 +102,9 @@ const SOAPreview = ({ record }) => {
           </div>
         </div>
         <div className="space-y-2 border-t border-foreground/10 pt-4">
-          <div className="flex justify-between text-sm text-gray-600"><span>Subtotal:</span><span>{`₱${subtotal.toFixed(2)}`}</span></div>
-          <div className="flex justify-between text-sm text-gray-600"><span>Tax (10%):</span><span>{`₱${tax.toFixed(2)}`}</span></div>
-          <div className="flex justify-between font-bold text-lg text-gray-800 border-t border-foreground/10 pt-2"><span>Total Amount:</span><span>{`₱${total.toFixed(2)}`}</span></div>
+          <div className="flex justify-between text-sm text-muted-foreground"><span>Subtotal:</span><span>{`₱${subtotal.toFixed(2)}`}</span></div>
+          <div className="flex justify-between text-sm text-muted-foreground"><span>Tax (10%):</span><span>{`₱${tax.toFixed(2)}`}</span></div>
+          <div className="flex justify-between font-bold text-lg border-t border-foreground/10 pt-2"><span>Total Amount:</span><span>{`₱${total.toFixed(2)}`}</span></div>
         </div>
         <div className="flex flex-col gap-2 pt-4">
           <button className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium bg-primary text-white h-9 px-4 py-2 w-full hover:bg-primary/90">

@@ -128,8 +128,8 @@ export function AddEmployeeDialog({ onClose }) {
     <Dialog open={open} onOpenChange={setOpen} className="rounded-xl">
         <DialogTrigger asChild>
             <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline-flex">Add Employee</span>
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline-flex">Add Employee</span>
             </Button>
         </DialogTrigger>
 

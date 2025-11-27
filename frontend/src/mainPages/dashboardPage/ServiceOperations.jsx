@@ -1,43 +1,62 @@
 import '../../index.css'
 import { Building2, ArrowRight, House } from "lucide-react";
 import { Link } from 'react-router-dom';
-
-// Card data where you can add more cards if needed
-const cardsData = [
-  {
-    cardStyle: "hover:outline-primary/20",
-    cardName: "Partnership Deliveries",
-    cardDescription: "B2B logistics operations",
-    cardIcon: Building2,
-    cardIconColor: "bg-primary/10 group-hover:bg-primary/20",
-    lucideIconStyle: "w-6 h-6 text-primary",
-    content: [
-      { label: "Active Partner", value: "SPX" },
-      { label: "Today's Routes", value: "8 deliveries" },
-    ],
-    cardButtonName: "Manage Partnership Operations",
-    cardButtonColor: "bg-primary text-primary-foreground hover:bg-primary/90 group-hover:bg-primary group-hover:text-primary-foreground",
-    cardButtonLink: "/app/partnership"
-  },
-  {
-    cardStyle: "hover:outline-accent/20",
-    cardName: "Lipat Bahay Services",
-    cardDescription: "Household moving & retail deliveries",
-    cardIcon: House,
-    cardIconColor: "bg-accent/10 group-hover:bg-accent/20",
-    lucideIconStyle: "w-6 h-6 text-accent",
-    content: [
-      { label: "Bookings Today", value: "4 scheduled" },
-      { label: "Average Rate", value: "₱3,500/job" },
-    ],
-    cardButtonName: "Manage Lipat Bahay Services",
-    cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",
-    cardButtonLink: "/app/lipat-bahay"
-  }
-];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { API_BASE_URL } from "@/config";
 
 
 function ServiceOperations() {
+
+    const [stats, setStats] = useState(null);
+
+    useEffect(() => {
+        axios
+        .get(`${API_BASE_URL}/manage_partnership_stats.php`, {
+            withCredentials: true
+        })
+        .then((res) => {
+            setStats(res.data);
+        })
+        .catch((err) => {
+            console.error("Error fetching dashboard stats:", err);
+            toast.error("Failed to load dashboard statistics.", err.message);
+        });
+    }, []);
+
+    // Card data where you can add more cards if needed
+    const cardsData = [
+    {
+        cardStyle: "hover:outline-primary/20",
+        cardName: "Partnership Deliveries",
+        cardDescription: "B2B logistics operations",
+        cardIcon: Building2,
+        cardIconColor: "bg-primary/10 group-hover:bg-primary/20",
+        lucideIconStyle: "w-6 h-6 text-primary",
+        content: [
+        { label: "Active Partner", value: "SPX" },
+        { label: "Today's Routes", value: stats?.routes_today?.total ?? 0 },
+        ],
+        cardButtonName: "Manage Partnership Operations",
+        cardButtonColor: "bg-primary text-primary-foreground hover:bg-primary/90 group-hover:bg-primary group-hover:text-primary-foreground",
+        cardButtonLink: "/app/partnership"
+    },
+    {
+        cardStyle: "hover:outline-accent/20",
+        cardName: "Lipat Bahay Services",
+        cardDescription: "Household moving & retail deliveries",
+        cardIcon: House,
+        cardIconColor: "bg-primary group-hover:bg-primary/90",
+        lucideIconStyle: "w-6 h-6 text-white",
+        content: [
+        { label: "Bookings Today", value: "4 scheduled" },
+        { label: "Average Rate", value: "₱3,500/job" },
+        ],
+        cardButtonName: "Manage Lipat Bahay Services",
+        cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",
+        cardButtonLink: "/app/lipat-bahay"
+    }
+    ];
     
     return (
         <div className="space-y-6">

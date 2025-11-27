@@ -12,7 +12,7 @@ import {
 const SOAFilters = () => {
 
   return (
-    <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm mb-6">
+    <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm mb-6">
       <div className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6">
         <div className="leading-none font-semibold flex items-center gap-2">
           <Funnel />Filters

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 20, 2025 at 09:24 PM
+-- Generation Time: Nov 23, 2025 at 10:21 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,66 +47,19 @@ CREATE TABLE `assignments` (
 CREATE TABLE `bookings` (
   `booking_id` int(11) NOT NULL,
   `service_type` enum('Partnership','LipatBahay') NOT NULL,
-  `dr_number` varchar(50) DEFAULT NULL,
-  `partner_name` varchar(100) DEFAULT NULL,
-  `customer_name` varchar(100) DEFAULT NULL,
-  `phone_number` varchar(20) DEFAULT NULL,
+  `dr_number` varchar(255) DEFAULT NULL,
+  `partner_name` varchar(255) DEFAULT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `phone_number` varchar(255) DEFAULT NULL,
   `route_from` varchar(255) DEFAULT NULL,
   `route_to` varchar(255) DEFAULT NULL,
   `scheduled_start` datetime DEFAULT NULL,
   `deadline` datetime DEFAULT NULL,
   `estimated_weight` decimal(10,2) DEFAULT NULL,
-  `category` varchar(100) DEFAULT NULL,
+  `category` varchar(255) DEFAULT NULL,
   `status` enum('Pending Assignment','Assigned','Completed','Cancelled') DEFAULT 'Pending Assignment',
   `date_created` datetime DEFAULT current_timestamp(),
   `created_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `delivery_assignment`
---
-
-CREATE TABLE `delivery_assignment` (
-  `assignment_id` int(11) NOT NULL,
-  `booking_id` int(11) NOT NULL,
-  `truck_id` int(11) NOT NULL,
-  `driver_id` int(11) NOT NULL,
-  `helper_id` int(11) DEFAULT NULL,
-  `assigned_date` datetime NOT NULL DEFAULT current_timestamp(),
-  `current_status` enum('Pending','OTW to SOC','Loading','OTW to Destination','Unloading','Completed','Incomplete') NOT NULL,
-  `remarks` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `delivery_document`
---
-
-CREATE TABLE `delivery_document` (
-  `document_id` int(11) NOT NULL,
-  `assignment_id` int(11) NOT NULL,
-  `document_type` enum('Delivery Receipt','Cargo Photo','Other') NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `date_uploaded` datetime NOT NULL DEFAULT current_timestamp(),
-  `uploaded_by` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `delivery_status_log`
---
-
-CREATE TABLE `delivery_status_log` (
-  `status_log_id` int(11) NOT NULL,
-  `assignment_id` int(11) NOT NULL,
-  `status` enum('OTW to SOC','Loading','OTW to Destination','Unloading','Completed','Incomplete') NOT NULL,
-  `remarks` int(255) DEFAULT NULL,
-  `timestamp` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -118,7 +71,8 @@ CREATE TABLE `delivery_status_log` (
 CREATE TABLE `documents` (
   `document_id` int(11) NOT NULL,
   `assignment_id` int(11) DEFAULT NULL,
-  `document_type` enum('Delivery Receipt','Cargo Photo','Other') DEFAULT NULL,
+  `booking_id` int(11) DEFAULT NULL,
+  `document_type` varchar(255) DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
   `date_uploaded` datetime DEFAULT current_timestamp(),
   `uploaded_by` int(11) DEFAULT NULL
@@ -163,89 +117,15 @@ CREATE TABLE `employee_documents` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `lipat_bahay_assignment`
+-- Table structure for table `password_resets`
 --
 
-CREATE TABLE `lipat_bahay_assignment` (
-  `assigment_id` int(11) NOT NULL,
-  `booking_id` int(11) NOT NULL,
-  `truck_id` int(11) NOT NULL,
-  `driver_id` int(11) NOT NULL,
-  `helper_id` int(11) DEFAULT NULL,
-  `assigned_date` datetime NOT NULL DEFAULT current_timestamp(),
-  `current_status` enum('Pending','OTW to Pickup','Loading','OTW to Destination','Unloading','Completed','Incomplete') NOT NULL,
-  `remarks` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `lipat_bahay_booking`
---
-
-CREATE TABLE `lipat_bahay_booking` (
-  `booking_id` int(11) NOT NULL,
-  `customer_name` varchar(255) NOT NULL,
-  `phone_number` varchar(255) NOT NULL,
-  `from_address` varchar(255) NOT NULL,
-  `to_address` varchar(255) NOT NULL,
-  `scheduled_start` datetime NOT NULL,
-  `deadline` datetime NOT NULL,
-  `estimated_weight` decimal(10,2) DEFAULT NULL,
-  `category` varchar(100) NOT NULL,
-  `status` enum('Pending Assignment','Assigned','Completed','Cancelled') NOT NULL,
-  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
-  `created_by` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `lipat_bahay_document`
---
-
-CREATE TABLE `lipat_bahay_document` (
-  `document_id` int(11) NOT NULL,
-  `assignment_id` int(11) NOT NULL,
-  `document_type` enum('Delivery Receipt','Cargo Photo','Other') NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `date_uploaded` datetime NOT NULL DEFAULT current_timestamp(),
-  `uploaded_by` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `lipat_bahay_status_log`
---
-
-CREATE TABLE `lipat_bahay_status_log` (
-  `status_log_id` int(11) NOT NULL,
-  `assignment_id` int(11) NOT NULL,
-  `status` enum('OTW to Pickup','Loading','OTW to Destination','Unloading','Completed','Incomplete') NOT NULL,
-  `remarks` varchar(255) DEFAULT NULL,
-  `timestamp` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `partnership_booking`
---
-
-CREATE TABLE `partnership_booking` (
-  `booking_id` int(11) NOT NULL,
-  `dr_number` varchar(255) NOT NULL,
-  `partner_name` varchar(255) NOT NULL,
-  `route_from` varchar(255) NOT NULL,
-  `route_to` varchar(255) NOT NULL,
-  `scheduled_start` datetime NOT NULL,
-  `deadline` datetime NOT NULL,
-  `estimated_weight` decimal(10,2) NOT NULL,
-  `category` varchar(255) NOT NULL,
-  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
-  `created_by` int(11) NOT NULL
+CREATE TABLE `password_resets` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -276,7 +156,7 @@ INSERT INTO `roles` (`role_id`, `role_name`) VALUES
 
 CREATE TABLE `soa` (
   `soa_id` int(11) NOT NULL,
-  `service_type` enum('Partnership','Lipat Bahay','','') NOT NULL,
+  `service_type` enum('Partnership','LipatBahay') NOT NULL,
   `date_from` date NOT NULL,
   `date_to` date NOT NULL,
   `total_amount` decimal(12,2) NOT NULL,
@@ -313,7 +193,8 @@ CREATE TABLE `soa_detail` (
 CREATE TABLE `status_logs` (
   `status_log_id` int(11) NOT NULL,
   `assignment_id` int(11) DEFAULT NULL,
-  `status` enum('OTW to SOC','OTW to Pickup','Loading','OTW to Destination','Unloading','Completed','Incomplete') DEFAULT NULL,
+  `booking_id` int(11) NOT NULL,
+  `status` enum('OTW to SOC','OTW to Pickup','Loading','OTW to Destination','Unloading','Completed','Incomplete','Scheduled') DEFAULT NULL,
   `remarks` varchar(255) DEFAULT NULL,
   `timestamp` datetime DEFAULT current_timestamp(),
   `updated_by` int(11) DEFAULT NULL
@@ -374,7 +255,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role_id`, `contact`) VALUES
-(1, 'Admin Cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$EJSYdBweoM1MmZ89zAvoperKen2RYvVLRI.kvCzsIIM56TXoX7dm.', 1, '09914942839')
+(1, 'Admin Cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$NpweGQh8p9/4sOtt2oIuEOoDH3Hwxq0qU.edcl8AKZxmFjdWwL2BO', 1, '09914942839');
 
 --
 -- Indexes for dumped tables
@@ -399,38 +280,13 @@ ALTER TABLE `bookings`
   ADD KEY `bookings_created_by_users_fk` (`created_by`);
 
 --
--- Indexes for table `delivery_assignment`
---
-ALTER TABLE `delivery_assignment`
-  ADD PRIMARY KEY (`assignment_id`),
-  ADD KEY `fk_delivery_truck` (`truck_id`),
-  ADD KEY `delivery_driver_fk` (`driver_id`),
-  ADD KEY `delivery_helper_fk` (`helper_id`),
-  ADD KEY `delivery_partnership_booking_fk` (`booking_id`);
-
---
--- Indexes for table `delivery_document`
---
-ALTER TABLE `delivery_document`
-  ADD PRIMARY KEY (`document_id`),
-  ADD KEY `delivery_assignment_document_fk` (`assignment_id`),
-  ADD KEY `uploaded_document_by_users_fk` (`uploaded_by`);
-
---
--- Indexes for table `delivery_status_log`
---
-ALTER TABLE `delivery_status_log`
-  ADD PRIMARY KEY (`status_log_id`),
-  ADD KEY `delivery_assignment_status_log_fk` (`assignment_id`),
-  ADD KEY `updated_by_users_fk` (`updated_by`);
-
---
 -- Indexes for table `documents`
 --
 ALTER TABLE `documents`
   ADD PRIMARY KEY (`document_id`),
   ADD KEY `assignment_id` (`assignment_id`),
-  ADD KEY `uploaded_by` (`uploaded_by`);
+  ADD KEY `uploaded_by` (`uploaded_by`),
+  ADD KEY `documents_ibfk_3` (`booking_id`);
 
 --
 -- Indexes for table `employees`
@@ -448,44 +304,12 @@ ALTER TABLE `employee_documents`
   ADD KEY `employees_fk` (`employee_id`);
 
 --
--- Indexes for table `lipat_bahay_assignment`
+-- Indexes for table `password_resets`
 --
-ALTER TABLE `lipat_bahay_assignment`
-  ADD PRIMARY KEY (`assigment_id`),
-  ADD KEY `lipat_bahay_booking_to_assignment_fk` (`booking_id`),
-  ADD KEY `lipat_bahay_assignment_truck_fk` (`truck_id`),
-  ADD KEY `lipat_bahay_assignment_driver_fk` (`driver_id`),
-  ADD KEY `lipat_bahay_assignment_helper_fk` (`helper_id`);
-
---
--- Indexes for table `lipat_bahay_booking`
---
-ALTER TABLE `lipat_bahay_booking`
-  ADD PRIMARY KEY (`booking_id`),
-  ADD KEY `lipat_bahay_booking_created_by_users_fk` (`created_by`);
-
---
--- Indexes for table `lipat_bahay_document`
---
-ALTER TABLE `lipat_bahay_document`
-  ADD PRIMARY KEY (`document_id`),
-  ADD KEY `lipat_bahay_document_assignment_fk` (`assignment_id`),
-  ADD KEY `lipat_bahay_document_uploaded_by_users_fk` (`uploaded_by`);
-
---
--- Indexes for table `lipat_bahay_status_log`
---
-ALTER TABLE `lipat_bahay_status_log`
-  ADD PRIMARY KEY (`status_log_id`),
-  ADD KEY `lipat_bahay_status_log_assignment_fk` (`assignment_id`),
-  ADD KEY `lipat_bahay_status_log_updated_by_users_fk` (`updated_by`);
-
---
--- Indexes for table `partnership_booking`
---
-ALTER TABLE `partnership_booking`
-  ADD PRIMARY KEY (`booking_id`),
-  ADD KEY `fk_partnership_created_by` (`created_by`);
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `password_resets_to_users_fk` (`user_id`);
 
 --
 -- Indexes for table `roles`
@@ -512,7 +336,8 @@ ALTER TABLE `soa_detail`
 ALTER TABLE `status_logs`
   ADD PRIMARY KEY (`status_log_id`),
   ADD KEY `assignment_id` (`assignment_id`),
-  ADD KEY `updated_by` (`updated_by`);
+  ADD KEY `updated_by` (`updated_by`),
+  ADD KEY `status_logs_ibfk_3` (`booking_id`);
 
 --
 -- Indexes for table `trucks`
@@ -552,24 +377,6 @@ ALTER TABLE `bookings`
   MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `delivery_assignment`
---
-ALTER TABLE `delivery_assignment`
-  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `delivery_document`
---
-ALTER TABLE `delivery_document`
-  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `delivery_status_log`
---
-ALTER TABLE `delivery_status_log`
-  MODIFY `status_log_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `documents`
 --
 ALTER TABLE `documents`
@@ -579,43 +386,19 @@ ALTER TABLE `documents`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `employee_documents`
 --
 ALTER TABLE `employee_documents`
-  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
-
---
--- AUTO_INCREMENT for table `lipat_bahay_assignment`
---
-ALTER TABLE `lipat_bahay_assignment`
-  MODIFY `assigment_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `lipat_bahay_booking`
---
-ALTER TABLE `lipat_bahay_booking`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `lipat_bahay_document`
---
-ALTER TABLE `lipat_bahay_document`
   MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `lipat_bahay_status_log`
+-- AUTO_INCREMENT for table `password_resets`
 --
-ALTER TABLE `lipat_bahay_status_log`
-  MODIFY `status_log_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `partnership_booking`
---
-ALTER TABLE `partnership_booking`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -657,7 +440,7 @@ ALTER TABLE `truck_documents`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -679,34 +462,12 @@ ALTER TABLE `bookings`
   ADD CONSTRAINT `bookings_created_by_users_fk` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`);
 
 --
--- Constraints for table `delivery_assignment`
---
-ALTER TABLE `delivery_assignment`
-  ADD CONSTRAINT `delivery_driver_fk` FOREIGN KEY (`driver_id`) REFERENCES `employees` (`employee_id`),
-  ADD CONSTRAINT `delivery_helper_fk` FOREIGN KEY (`helper_id`) REFERENCES `employees` (`employee_id`),
-  ADD CONSTRAINT `delivery_partnership_booking_fk` FOREIGN KEY (`booking_id`) REFERENCES `partnership_booking` (`booking_id`),
-  ADD CONSTRAINT `fk_delivery_truck` FOREIGN KEY (`truck_id`) REFERENCES `trucks` (`truck_id`);
-
---
--- Constraints for table `delivery_document`
---
-ALTER TABLE `delivery_document`
-  ADD CONSTRAINT `delivery_assignment_document_fk` FOREIGN KEY (`assignment_id`) REFERENCES `delivery_assignment` (`assignment_id`),
-  ADD CONSTRAINT `uploaded_document_by_users_fk` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`);
-
---
--- Constraints for table `delivery_status_log`
---
-ALTER TABLE `delivery_status_log`
-  ADD CONSTRAINT `delivery_assignment_status_log_fk` FOREIGN KEY (`assignment_id`) REFERENCES `delivery_assignment` (`assignment_id`),
-  ADD CONSTRAINT `updated_by_users_fk` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`);
-
---
 -- Constraints for table `documents`
 --
 ALTER TABLE `documents`
   ADD CONSTRAINT `documents_ibfk_1` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`assignment_id`),
-  ADD CONSTRAINT `documents_ibfk_2` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `documents_ibfk_2` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `documents_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`);
 
 --
 -- Constraints for table `employees`
@@ -721,39 +482,10 @@ ALTER TABLE `employee_documents`
   ADD CONSTRAINT `employees_fk` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `lipat_bahay_assignment`
+-- Constraints for table `password_resets`
 --
-ALTER TABLE `lipat_bahay_assignment`
-  ADD CONSTRAINT `lipat_bahay_assignment_driver_fk` FOREIGN KEY (`driver_id`) REFERENCES `employees` (`employee_id`),
-  ADD CONSTRAINT `lipat_bahay_assignment_helper_fk` FOREIGN KEY (`helper_id`) REFERENCES `employees` (`employee_id`),
-  ADD CONSTRAINT `lipat_bahay_assignment_truck_fk` FOREIGN KEY (`truck_id`) REFERENCES `trucks` (`truck_id`),
-  ADD CONSTRAINT `lipat_bahay_booking_to_assignment_fk` FOREIGN KEY (`booking_id`) REFERENCES `lipat_bahay_booking` (`booking_id`);
-
---
--- Constraints for table `lipat_bahay_booking`
---
-ALTER TABLE `lipat_bahay_booking`
-  ADD CONSTRAINT `lipat_bahay_booking_created_by_users_fk` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`);
-
---
--- Constraints for table `lipat_bahay_document`
---
-ALTER TABLE `lipat_bahay_document`
-  ADD CONSTRAINT `lipat_bahay_document_assignment_fk` FOREIGN KEY (`assignment_id`) REFERENCES `lipat_bahay_assignment` (`assigment_id`),
-  ADD CONSTRAINT `lipat_bahay_document_uploaded_by_users_fk` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`);
-
---
--- Constraints for table `lipat_bahay_status_log`
---
-ALTER TABLE `lipat_bahay_status_log`
-  ADD CONSTRAINT `lipat_bahay_status_log_assignment_fk` FOREIGN KEY (`assignment_id`) REFERENCES `lipat_bahay_assignment` (`assigment_id`),
-  ADD CONSTRAINT `lipat_bahay_status_log_updated_by_users_fk` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`);
-
---
--- Constraints for table `partnership_booking`
---
-ALTER TABLE `partnership_booking`
-  ADD CONSTRAINT `fk_partnership_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`);
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_to_users_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `soa`
@@ -766,7 +498,8 @@ ALTER TABLE `soa`
 --
 ALTER TABLE `status_logs`
   ADD CONSTRAINT `status_logs_ibfk_1` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`assignment_id`),
-  ADD CONSTRAINT `status_logs_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `status_logs_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `status_logs_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`);
 
 --
 -- Constraints for table `truck_documents`

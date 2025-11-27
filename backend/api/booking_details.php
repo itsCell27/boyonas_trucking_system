@@ -107,34 +107,35 @@ try {
     }
     $stmt->close();
 
-    // Fetch documents (linked to assignment_id if exists)
+    // Fetch documents using booking_id (NOT assignment_id)
     $documents = [];
-    if ($assignment) {
-        $documentsQuery = "
-            SELECT 
-                d.document_id,
-                d.assignment_id,
-                d.document_type,
-                d.file_path,
-                d.date_uploaded,
-                d.uploaded_by,
-                u.name as uploaded_by_name
-            FROM documents d
-            LEFT JOIN users u ON d.uploaded_by = u.user_id
-            WHERE d.assignment_id = ?
-            ORDER BY d.date_uploaded DESC
-        ";
-        
-        $stmt = $conn->prepare($documentsQuery);
-        $stmt->bind_param("i", $assignment['assignment_id']);
-        $stmt->execute();
-        $documentsResult = $stmt->get_result();
-        
-        while ($row = $documentsResult->fetch_assoc()) {
-            $documents[] = $row;
-        }
-        $stmt->close();
+
+    $documentsQuery = "
+        SELECT 
+            d.document_id,
+            d.booking_id,
+            d.document_type,
+            d.file_path,
+            d.date_uploaded,
+            d.uploaded_by,
+            u.name as uploaded_by_name
+        FROM documents d
+        LEFT JOIN users u ON d.uploaded_by = u.user_id
+        WHERE d.booking_id = ?
+        ORDER BY d.date_uploaded DESC
+    ";
+
+    $stmt = $conn->prepare($documentsQuery);
+    $stmt->bind_param("i", $bookingId);
+    $stmt->execute();
+    $documentsResult = $stmt->get_result();
+
+    while ($row = $documentsResult->fetch_assoc()) {
+        $documents[] = $row;
     }
+
+    $stmt->close();
+
 
     // Fetch status logs if assignment exists
     $statusLogs = [];

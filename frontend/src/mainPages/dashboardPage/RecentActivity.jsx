@@ -1,5 +1,8 @@
 import '../../index.css'
 import { Clock, Truck, MapPin } from 'lucide-react';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { API_BASE_URL } from '@/config';
 
 const activityData = [
     {
@@ -45,6 +48,20 @@ const activityData = [
 ]
 
 function RecentActivity() {
+
+    const [activityData, setActivityData] = useState([]);
+
+    useEffect(() => {
+        axios.get(`${API_BASE_URL}/get_recent_activity.php`, { withCredentials: true })
+            .then(res => {
+                setActivityData(res.data);
+                console.log("Recent activity data:", res.data);
+            })
+            .catch(err => {
+                console.error("Error fetching recent activity:", err);
+            });
+    }, []);
+
     return (
         <div className="lg:col-span-2">
             <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl  py-6 shadow-sm border border-foreground/10">
@@ -59,6 +76,12 @@ function RecentActivity() {
                 {/* Recent Activity Content */}
                 <div className="px-6">
                     <div className="space-y-4">
+
+                        {activityData.length === 0 && (
+                            <div className="text-sm text-muted-foreground w-full text-center p-2 border border-dashed border-foreground/20 rounded-md">
+                                No recent activity available.
+                            </div>
+                        )}
                         {/* Activity Item Format */}
                         {activityData.map((item, index) => {
                             

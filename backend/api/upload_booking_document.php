@@ -104,10 +104,10 @@ try {
 
     // Insert document record into database
     $stmt = $conn->prepare(
-        "INSERT INTO documents (assignment_id, document_type, file_path, uploaded_by) 
-         VALUES (?, ?, ?, ?)"
+        "INSERT INTO documents (assignment_id, booking_id, document_type, file_path, uploaded_by) 
+         VALUES (?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param("issi", $assignmentId, $documentType, $dbFilePath, $uploadedBy);
+    $stmt->bind_param("iissi", $assignmentId, $bookingId, $documentType, $dbFilePath, $uploadedBy);
     
     if (!$stmt->execute()) {
         // If database insert fails, delete the uploaded file

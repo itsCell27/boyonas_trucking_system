@@ -25,65 +25,69 @@ function Sidebar() {
         setIsMobileMenuOpen((previous) => !previous);
     }
 
+    const sidebarWidth = isCollapsed ? "w-0 md:w-16" : "w-0 md:w-64";
+
     return (
         <>
             {/* Mobile Menu Button */}
-            <button onClick={toggleMobileMenu} className="md:hidden fixed top-4 left-4 z-20 p-2 rounded-md outline-1 outline-primary bg-accent-foreground text-sidebar-foreground">
-                <Menu className="w-6 h-6" />
+            <button onClick={toggleMobileMenu} className="md:hidden fixed top-4 left-4 z-20 p-2 rounded-md bg-primary text-white">
+                <Menu className="w-4 h-4" />
             </button>
 
             {/* Overlay */}
             {isMobileMenuOpen && (
                 <div onClick={toggleMobileMenu} className="md:hidden fixed inset-0 bg-black/50 z-10" />
             )}
-
-            <nav className={`fixed top-0 left-0 md:relative flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 z-20 h-screen
+            <nav className={`${sidebarWidth} border-r border-sidebar-border`}>
+                <nav className={`fixed top-0 left-0 flex flex-col bg-background md:bg-transparent transition-all duration-300 z-20 h-screen
                 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
                 md:translate-x-0
                 ${isCollapsed ? "w-16" : "w-64"}`}>
-                <div className="sticky top-0 left-0 max-h-[100vh]">
-                    {/* Profile */}
-                    <section className="flex items-center justify-between p-4 border-b border-sidebar-border">
-                        <div className={`${isCollapsed ? "hidden " : "flex items-center justify-center space-x-3"}`}>
-                            {/* Profile Picture */}
-                            <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-                                <span className="text-sidebar-primary-foreground font-bold text-sm-noline-heaight">B</span>
-                            </div>
-                            {/* Username */}
-                            <div>
-                                <h1 className="text-sm font-bold text-[var(--sidebar-foreground)]">Boyonas Trucking</h1>
-                                <p className="text-xs text-sidebar-foreground/60">Service Management</p>
-                            </div>
-                        </div> 
-                        {/* Navbar toggle button */}
-                        <button onClick={toggleSidebar} className={`hidden md:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-sidebar-accent transition`}>
-                            {isCollapsed ? <ChevronRight className="w-4 h4"/> : <ChevronLeft className="w-4 h4"/>}
-                        </button>
-                        {/* Mobile Close Button */}
-                        <button onClick={toggleMobileMenu} className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-sidebar-accent transition">
-                            <X className="w-4 h-4" />
-                        </button>
-                    </section>
-                    {/* Menus */}
-                    <menu className="flex-1 px-3 py-4 flex flex-col">
-                        {navigation.map((navigate, index) => {
-                                const Icon = navigate.icon;
-                                const active = location.pathname === navigate.path || (location.pathname === "/app" && navigate.path === "/app/dashboard");
-                                const baseClass = "w-full h-10 inline-flex items-center justify-start px-3 py-2 rounded-md font-medium text-sm mb-1 gap-3"
-                                const activeClass = active
-                                    ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-                                    : "text-sidebar-foreground hover:bg-sidebar-accent";
-                                return (
-                                    <Link key={index} to={navigate.path} className={`${baseClass} ${activeClass}`}>
-                                        <Icon className="w-4 h-4 flex-shrink-0"/>
-                                        <span className={`${isCollapsed ? "hidden" : "text-sm"}`}>{navigate.name}</span>
-                                    </Link>
-                                )  
-                            })
-                        }
-                    </menu>
-                </div>
+                    <div className="sticky top-0 left-0 max-h-[100vh]">
+                        {/* Profile */}
+                        <section className="flex items-center justify-between p-4 border-b border-sidebar-border">
+                            <div className={`${isCollapsed ? "hidden " : "flex items-center justify-center space-x-3"}`}>
+                                {/* Profile Picture */}
+                                <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
+                                    <span className="text-sidebar-primary-foreground font-bold text-sm-noline-heaight">B</span>
+                                </div>
+                                {/* Username */}
+                                <div>
+                                    <h1 className="text-sm font-bold text-[var(--sidebar-foreground)]">Boyonas Trucking</h1>
+                                    <p className="text-xs text-sidebar-foreground/60">Service Management</p>
+                                </div>
+                            </div> 
+                            {/* Navbar toggle button */}
+                            <button onClick={toggleSidebar} className={`hidden md:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-sidebar-accent transition`}>
+                                {isCollapsed ? <ChevronRight className="w-4 h4"/> : <ChevronLeft className="w-4 h4"/>}
+                            </button>
+                            {/* Mobile Close Button */}
+                            <button onClick={toggleMobileMenu} className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-sidebar-accent transition">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </section>
+                        {/* Menus */}
+                        <menu className="flex-1 px-3 py-4 flex flex-col">
+                            {navigation.map((navigate, index) => {
+                                    const Icon = navigate.icon;
+                                    const active = location.pathname === navigate.path || (location.pathname === "/app" && navigate.path === "/app/dashboard");
+                                    const baseClass = "w-full h-10 inline-flex items-center justify-start px-3 py-2 rounded-md font-medium text-sm mb-1 gap-3"
+                                    const activeClass = active
+                                        ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+                                        : "text-sidebar-foreground hover:bg-sidebar-accent";
+                                    return (
+                                        <Link key={index} to={navigate.path} className={`${baseClass} ${activeClass}`} onClick={toggleMobileMenu}>
+                                            <Icon className="w-4 h-4 flex-shrink-0"/>
+                                            <span className={`${isCollapsed ? "hidden" : "text-sm"}`}>{navigate.name}</span>
+                                        </Link>
+                                    )  
+                                })
+                            }
+                        </menu>
+                    </div>
+                </nav>
             </nav>
+            
         </>
     )
 }

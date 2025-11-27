@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "@/config";
 import { toast } from "sonner";
-import { Spinner } from "@/components/ui/spinner";
 
 export default function Test() {
   const [showPassword, setShowPassword] = useState(false);
@@ -76,7 +75,7 @@ export default function Test() {
         <p>Management System</p>
       </div>
 
-      <Card className="flex flex-col md:flex-row w-full max-w-[85vw] sm:max-w-[80vw] lg:max-w-[60vw] xl:max-w-[60vw] 2xl:max-w-[60vw] rounded-2xl overflow-hidden shadow-xl border border-border p-0 gap-0">
+      <Card className="flex flex-col md:flex-row w-full max-w-[90vw] sm:max-w-[80vw] lg:max-w-[60vw] xl:max-w-[70vw] 2xl:max-w-[50vw] rounded-2xl overflow-hidden shadow-xl border border-border p-0 gap-0">
         {/* Left Section */}
         <div className="md:flex flex-col hidden justify-center items-center w-full md:w-1/2 p-8 text-center bg-card">
           <div className="p-6 bg-transparent text-primary">
@@ -138,7 +137,7 @@ export default function Test() {
 
             {/* Submit Button */}
             <Button type="submit" className="w-full font-medium text-white" disabled={loading}>
-              {loading ? (<span className="flex gap-2"><Spinner /> Logging in...</span>) : "Login"}
+              {loading ? "Logging in..." : "Login"}
             </Button>
 
             {/* Forgot Password */}
@@ -147,7 +146,6 @@ export default function Test() {
               variant="link"
               className="w-full"
               onClick={() => navigate("/forgot_password")}
-              disabled={loading}
             >
               Forgot Password?
             </Button>

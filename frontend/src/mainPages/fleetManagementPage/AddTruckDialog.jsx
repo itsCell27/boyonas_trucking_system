@@ -198,7 +198,7 @@ export default function AddTruckDialog({ onClose }) {
                 />
               </div>
 
-              <div className="flex justify-evenly max-w gap-6 flex-col sm:flex-row">
+              <div className="flex justify-between max-w gap-6 flex-col sm:flex-row">
                 <div>
                     <label className="text-sm font-medium">Status</label>
                     <Select className="gap-2"

@@ -10,30 +10,42 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, FileText, Download } from "lucide-react";
+import { Phone, Mail, FileText, Download, Eye } from "lucide-react";
 import { API_BASE_URL } from "@/config";
+import { DocumentPreview } from "@/components/DocumentPreview"; 
+
 
 function ViewProfile({ employee }) {
   const [open, setOpen] = useState(false);
   const [employeeDetails, setEmployeeDetails] = useState(null);
 
-    useEffect(() => {
-        if (open && employee) {
-            axios.get(`${API_BASE_URL}/employee_details.php`, {
-            params: {
-                employee_id: employee.employee_id,
-                user_id: employee.user_id
-            },
-            withCredentials: true
-            })
-            .then((response) => {
-            setEmployeeDetails(response.data);
-            })
-            .catch((error) => {
-            console.error("Error fetching employee details:", error);
-            });
-        }
-    }, [open, employee]);
+  useEffect(() => {
+      if (open && employee) {
+          axios.get(`${API_BASE_URL}/employee_details.php`, {
+          params: {
+              employee_id: employee.employee_id,
+              user_id: employee.user_id
+          },
+          withCredentials: true
+          })
+          .then((response) => {
+          setEmployeeDetails(response.data);
+          console.log("Fetched employee details:", response.data);
+          })
+          .catch((error) => {
+          console.error("Error fetching employee details:", error);
+          });
+      }
+  }, [open, employee]);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  
+  const handleViewDocument = (filePath) => {
+    const url = `${API_BASE_URL}/${filePath}`;
+    setSelectedDocument(url);
+    setPreviewOpen(true);
+  };
 
 
   const getStatusColor = (status) => {
@@ -80,7 +92,7 @@ function ViewProfile({ employee }) {
               <h2 className="text-2xl font-bold">{e.full_name}</h2>
               <p className="text-muted-foreground">{e.employee_code}</p>
             </div>
-            <Badge className={getStatusColor(e.status)}>{e.status}</Badge>
+            <Badge className={`${getStatusColor(e.status)} pointer-events-none`}>{e.status}</Badge>
           </div>
 
           {/* Personal Info */}
@@ -147,11 +159,11 @@ function ViewProfile({ employee }) {
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Current Assignment</label>
-                <p>{e.currentAssignment || "None"}</p>
+                {e.latest_assignment == null ? <p>None</p> : <p>{e.latest_assignment.dr_number || "None"}</p>}
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Assigned Vehicle</label>
-                <p>{e.vehicle || "Unassigned"}</p>
+                {e.latest_assignment == null ? <p>None</p> : <p>{e.latest_assignment.plate_number || "None"}</p>}
               </div>
             </CardContent>
           </Card>
@@ -218,16 +230,21 @@ function ViewProfile({ employee }) {
                       variant="ghost"
                       size="icon"
                       title="Download Document"
+                      onClick={() => handleViewDocument(doc.file_path)}
                     >
-                      <a href={doc.file_path} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4" />
-                      </a>
+                      <Eye className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">No documents uploaded.</p>
               )}
+
+              <DocumentPreview
+                open={previewOpen}
+                onOpenChange={setPreviewOpen}
+                document={selectedDocument}
+              />
             </CardContent>
           </Card>
         </div>
