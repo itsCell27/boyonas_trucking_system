@@ -9,24 +9,40 @@ import Test from '@/Test'
 import ForgotPassword from '@/pages/ForgotPassword.jsx';
 import ResetPassword from '@/pages/ResetPassword.jsx';
 import { ThemeContextProvider } from '@/context/ThemeContext'
+import { AuthProvider } from '@/context/AuthContext.jsx';
+import AdminRoute from '@/components/AdminRoute.jsx';
+import DriverRoute from '@/components/DriverRoute.jsx';
+import DriverPortal from '@/driverPages/Driver.jsx';
 import { Toaster } from 'sonner';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeContextProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/reset_password" element={<ResetPassword />} />
-          <Route path="/forgot_password" element={<ForgotPassword />} />
-          <Route path="/test" element={<Test />} />
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/app/*" element={<App />} />
-          </Route>
-        </Routes>
-        <Toaster richColors position="top-center"/>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/reset_password" element={<ResetPassword />} />
+            <Route path="/forgot_password" element={<ForgotPassword />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<Login />} />
+            {/* ADMIN-ONLY ROUTES */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AdminRoute />}>
+                <Route path="/app/*" element={<App />} />
+              </Route>
+            </Route>
+
+            {/* DRIVER-ONLY ROUTES */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DriverRoute />}>
+                <Route path="/driver" element={<DriverPortal />} />
+              </Route>
+            </Route>
+          </Routes>
+          <Toaster richColors position="top-center"/>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeContextProvider>
   </StrictMode>,
 )

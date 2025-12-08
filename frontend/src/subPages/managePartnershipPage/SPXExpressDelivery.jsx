@@ -48,34 +48,56 @@ export default function SPXExpressDelivery() {
   const [selectedTruck, setSelectedTruck] = useState("");
   const [assignLoading, setAssignLoading] = useState(false);
 
-  // ✅ Upload dialog state
+  // Upload dialog state
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadBookingId, setUploadBookingId] = useState(null);
   const [uploadAssignmentId, setUploadAssignmentId] = useState(null);
 
-  // ✅ View details dialog state
+  // View details dialog state
   const [viewOpen, setViewOpen] = useState(false);
   const [viewBookingId, setViewBookingId] = useState(null);
 
-  // ✅ Open upload dialog for a specific booking
+  // Open upload dialog for a specific booking
   const openUploadDialog = (booking) => {
     setUploadBookingId(booking.booking_id);
     setUploadAssignmentId(booking.assignment_id || null); // If booking has assignment
     setUploadOpen(true);
   };
 
-  // ✅ Callback after successful upload
+  // Callback after successful upload
   const handleUploadSuccess = () => {
     loadBookings(); // Refresh bookings list
   };
 
-  // ✅ Open view details dialog
+  // Open view details dialog
   const openViewDialog = (booking) => {
     setViewBookingId(booking.booking_id);
     setViewOpen(true);
   };
 
   const navigate = useNavigate();
+
+  const getStatusColor = (status) => {
+    const colors = {
+      "Pending Assignment":
+        "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+
+      "Assigned":
+        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+
+      "Completed":
+        "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+
+      "Cancelled":
+        "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+    };
+
+    // Default / Fallback
+    return (
+      colors[status] ||
+      "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700"
+    );
+  };
 
   // alert dialog (when no resources available)
   const [noAvailDlg, setNoAvailDlg] = useState({ open: false, message: "" });
@@ -294,7 +316,7 @@ export default function SPXExpressDelivery() {
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">{b.dr_number || `BOOK-${b.booking_id}`}</span>
                             <span className="text-xs border rounded px-2 py-0.5">{b.partner_name || "SPX Express"}</span>
-                            <span className="text-xs border rounded px-2 py-0.5">{b.status}</span>
+                            <span className={`text-xs border rounded px-2 py-0.5 ${getStatusColor(b.status)}`}>{b.status}</span>
                           </div>
                           <div className="text-sm text-muted-foreground">
                             Scheduled Start: {format(new Date(b.scheduled_start), 'MMM d, yyyy, h:mm a')}
@@ -402,7 +424,7 @@ export default function SPXExpressDelivery() {
 
                               <AlertDialogAction
                                 onClick={() => cancelBooking(b)} // <-- calls your function
-                                className="bg-destructive text-white hover:bg-destructive/90"
+                                className="bg-destructive text-white hover:bg-destructive/80"
                               >
                                 Yes, cancel it
                               </AlertDialogAction>

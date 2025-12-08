@@ -9,6 +9,7 @@ import { API_BASE_URL } from "@/config";
 function ServiceOperations() {
 
     const [stats, setStats] = useState(null);
+    const [lipatBahayStats, setLipatBahayStats] = useState(null);
 
     useEffect(() => {
         axios
@@ -17,6 +18,20 @@ function ServiceOperations() {
         })
         .then((res) => {
             setStats(res.data);
+        })
+        .catch((err) => {
+            console.error("Error fetching dashboard stats:", err);
+            toast.error("Failed to load dashboard statistics.", err.message);
+        });
+    }, []);
+
+    useEffect(() => {
+        axios
+        .get(`${API_BASE_URL}/manage_lipatbahay_stats.php`, {
+            withCredentials: true
+        })
+        .then((res) => {
+            setLipatBahayStats(res.data);
         })
         .catch((err) => {
             console.error("Error fetching dashboard stats:", err);
@@ -34,7 +49,7 @@ function ServiceOperations() {
         cardIconColor: "bg-primary/10 group-hover:bg-primary/20",
         lucideIconStyle: "w-6 h-6 text-primary",
         content: [
-        { label: "Active Partner", value: "SPX" },
+        // { label: "Active Partner", value: "SPX" },
         { label: "Today's Routes", value: stats?.routes_today?.total ?? 0 },
         ],
         cardButtonName: "Manage Partnership Operations",
@@ -49,8 +64,8 @@ function ServiceOperations() {
         cardIconColor: "bg-primary group-hover:bg-primary/90",
         lucideIconStyle: "w-6 h-6 text-white",
         content: [
-        { label: "Bookings Today", value: "4 scheduled" },
-        { label: "Average Rate", value: "₱3,500/job" },
+        { label: "Bookings Today", value: lipatBahayStats?.routes_today?.total ?? 0 },
+        // { label: "Average Rate", value: "₱3,500/job" },
         ],
         cardButtonName: "Manage Lipat Bahay Services",
         cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",

@@ -1,3 +1,4 @@
+// src/pages/Login.jsx  (updated)
 import { useState } from "react";
 import { Eye, EyeOff, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -8,14 +9,16 @@ import axios from "axios";
 import { API_BASE_URL } from "@/config";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/context/AuthContext.jsx"; // <-- new
 
-export default function Test() {
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useAuth(); // set user in Context
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -29,34 +32,68 @@ export default function Test() {
         `${API_BASE_URL}/login.php`,
         { email, password },
         {
-          withCredentials: true,
+          withCredentials: true, // important: cookies (PHP session)
           headers: { "Content-Type": "application/json" },
-          timeout: 8000,
+          timeout: 10000,
         }
       );
 
       const data = response.data;
 
-      if (data.success) {
-        if (data.user.role_name === "admin") {
-            // Set authentication BEFORE navigating
-            localStorage.setItem("isAuthenticated", "true");
+      if (data && data.success) {
+        // set user into AuthContext (preferred)
+        const user = data.user || null;
+        if (user) {
+          setUser(user);
+          // optional localStorage flag for simple checks (avoid as single source of truth)
+          localStorage.setItem("isAuthenticated", "true");
 
-            // Use replace to avoid back button issues
+          // Redirect based on role_name or role_id
+          const roleName = (user.role_name || "").toLowerCase();
+          const roleId = user.role_id ?? null;
+
+          if (roleName === "admin" || roleId === 1) {
+            toast.success("Welcome back.");
             navigate("/app/dashboard", { replace: true });
+          } else if (roleName === "driver" || roleId === 2) {
+            toast.success("Welcome driver.");
+            navigate("/driver", { replace: true });
+          } else {
+            // fallback: not allowed
+            toast.error("Your account does not have access to this application.");
+          }
         } else {
-            toast.error("Only admin users can access this system.");
+          toast.error("Login succeeded but no user data returned.");
         }
       } else {
-            toast.error(data.message || "An unknown error occurred.");
+        // Backend returned success: false with message
+        toast.error(data?.message || "Invalid credentials.");
       }
-    } catch (error) {
-        console.error("Login error:", error);
+    } catch (err) {
+      console.error("Login error:", err);
 
-      if (error.response) {
-        toast.error(error.response.data.message || "Invalid credentials.");
-      } else if (error.request) {
-        toast.error("No response from server. Please check your connection.");
+      // Handle rate limit (429) specifically and show "retry_after" if provided
+      if (err.response) {
+        const status = err.response.status;
+        const body = err.response.data || {};
+        if (status === 429) {
+          const retry = body.retry_after ?? body.retryAfter ?? null;
+          if (retry) {
+            toast.error(`Too many attempts. Try again in ${retry} seconds.`);
+          } else {
+            toast.error("Too many attempts. Try again later.");
+          }
+        } else if (status === 401) {
+          // authentication failure
+          toast.error(body.message || "Invalid email or password.");
+          // optional: show a small message in UI as well
+          setError(body.message || "Invalid email or password.");
+        } else {
+          toast.error(body.message || "Server error. Try again.");
+        }
+      } else if (err.request) {
+        // No response
+        toast.error("No response from server. Check your connection.");
       } else {
         toast.error("Request failed. Try again.");
       }
@@ -138,7 +175,7 @@ export default function Test() {
 
             {/* Submit Button */}
             <Button type="submit" className="w-full font-medium text-white" disabled={loading}>
-              {loading ? (<span className="flex gap-2"><Spinner /> Logging in...</span>) : "Login"}
+              {loading ? (<span className="flex gap-2 items-center justify-center"><Spinner /> Logging in...</span>) : "Login"}
             </Button>
 
             {/* Forgot Password */}

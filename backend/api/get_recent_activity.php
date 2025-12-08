@@ -39,7 +39,7 @@ $query = "
     LEFT JOIN users u ON sl.updated_by = u.user_id
 
     ORDER BY sl.timestamp DESC
-    LIMIT 15
+    LIMIT 5
 ";
 
 $result = $conn->query($query);
@@ -71,8 +71,8 @@ while ($row = $result->fetch_assoc()) {
         "deliveryID" => $row["deliveryID"],
         "serviceType" => $row["service_type"],
         "route" => $row["route"],
-        "vehiclePlate" => $row["vehiclePlate"] ?? "N/A",
-        "driver" => $row["driver"] ?? "N/A",
+        "vehiclePlate" => $row["vehiclePlate"] ?? "No Vehicle Assigned",
+        "driver" => $row["driver"] ?? "No Driver Assigned",
         "client" => $row["client"] ?? "Unknown Client",
         "status" => $row["status"],
         "time" => $label

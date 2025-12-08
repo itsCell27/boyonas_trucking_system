@@ -86,16 +86,44 @@ function RecentActivity() {
                         {activityData.map((item, index) => {
                             
                             let statusColor = "";
-                            if (item.status.toLowerCase().includes("in transit")) {
-                                statusColor = "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-                            } else if (item.status.toLowerCase().includes("completed")) {
+                            const status = item.status.toLowerCase();
+
+                            if (status.includes("otw to soc")) {
+                                statusColor = "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300";
+
+                            } else if (status.includes("otw to pickup")) {
+                                statusColor = "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
+
+                            } else if (status.includes("otw to destination")) {
+                                statusColor = "bg-blue-200 text-blue-900 dark:bg-blue-950 dark:text-blue-300";
+
+                            } else if (status.includes("loading")) {
+                                statusColor = "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300";
+
+                            } else if (status.includes("unloading")) {
+                                statusColor = "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+
+                            } else if (status.includes("completed")) {
                                 statusColor = "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-                            } else if (item.status.toLowerCase().includes("loading")) {
-                                statusColor = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-                            } else if (item.status.toLowerCase().includes("scheduled")) {
+
+                            } else if (status.includes("incomplete")) {
+                                statusColor = "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-300";
+
+                            } else if (status.includes("scheduled")) {
                                 statusColor = "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-                            } else {
+
+                            } else if (status.includes("assigned")) {  
                                 statusColor = "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+
+                            } else if (status.includes("pending")) {  
+                                statusColor = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+
+                            } else if (status.includes("cancelled")) {
+                                statusColor = "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+
+                            } else {
+                                // fallback
+                                statusColor = "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
                             }
 
 

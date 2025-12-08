@@ -97,12 +97,12 @@ function FleetOverview() {
     const fleetFooterData = [
         {
             trucks: footerStats.active,
-            color: "text-green-600",
+            color: "text-blue-600",
             text: "Active"
         },
         {
             trucks: footerStats.available,
-            color: "text-blue-600",
+            color: "text-green-600",
             text: "Available"
         },
         {

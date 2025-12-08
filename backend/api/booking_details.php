@@ -47,6 +47,7 @@ try {
             b.scheduled_start,
             b.deadline,
             b.estimated_weight,
+            b.service_rate,
             b.category,
             b.status,
             b.date_created,

@@ -6,9 +6,28 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Truck,
   MapPin,
@@ -22,8 +41,13 @@ import {
   Loader2,
   Download,
   Eye,
+  Ghost,
+  SquarePen,
+  Trash2,
 } from "lucide-react";
 import { DocumentPreview } from "@/components/DocumentPreview"; 
+import { useNavigate } from "react-router-dom";
+
 
 export default function ViewBookingDetails({
   open,
@@ -37,6 +61,8 @@ export default function ViewBookingDetails({
   const [booking, setBooking] = useState(null);
   const [assignment, setAssignment] = useState(null);
   const [documents, setDocuments] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open && bookingId) {
@@ -74,13 +100,26 @@ export default function ViewBookingDetails({
 
   const getStatusColor = (status) => {
     const colors = {
-      "Pending Assignment": "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
-      "Assigned": "bg-blue-500/10 text-blue-700 border-blue-500/20",
-      "Completed": "bg-green-500/10 text-green-700 border-green-500/20",
-      "Cancelled": "bg-red-500/10 text-red-700 border-red-500/20",
+      "Pending Assignment":
+        "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+
+      "Assigned":
+        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+
+      "Completed":
+        "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+
+      "Cancelled":
+        "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
     };
-    return colors[status] || "bg-gray-500/10 text-gray-700 border-gray-500/20";
+
+    // Default / Fallback
+    return (
+      colors[status] ||
+      "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700"
+    );
   };
+
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -101,6 +140,8 @@ export default function ViewBookingDetails({
     setSelectedDocument(url);
     setPreviewOpen(true);
   };
+
+  //console.log("Booking Data:", booking);
 
   return (
     <>
@@ -123,7 +164,7 @@ export default function ViewBookingDetails({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-muted-foreground">STATUS</h3>
-                  <Badge className={getStatusColor(booking.status)}>
+                  <Badge className={`${getStatusColor(booking.status)} pointer-events-none`}>
                     {booking.status}
                   </Badge>
                 </div>
@@ -241,7 +282,44 @@ export default function ViewBookingDetails({
               {/* Assignment Information */}
               {assignment && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground">ASSIGNMENT DETAILS</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-semibold text-muted-foreground">ASSIGNMENT DETAILS</h3>
+                    {(booking.status !== "Completed" && booking.status !== "Cancelled") && (
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost"
+                          onClick={() => navigate(`/app/assignment/${booking.booking_id}`)}
+                        >
+                          <SquarePen/> <span className="hidden sm:block">Edit Assignment</span>
+                        </Button>
+
+                        {/* For future updates */}
+                        {/* <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                            >
+                              <Trash2 /> <span className="hidden sm:block">Delete Assignment</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the assignment for this booking.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/80">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog> */}
+                      </div>
+                    )}
+                    
+                  </div>
+                  
                   <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">

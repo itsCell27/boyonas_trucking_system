@@ -32,7 +32,7 @@ export default function ForgotPassword() {
     setLoading(true);
     
     try {
-      console.log("Sending request..."); // Debug log
+      //console.log("Sending request..."); // Debug log
       
       const res = await axios.post(
         `${API_BASE_URL}/forgot_password.php`, 
@@ -42,13 +42,13 @@ export default function ForgotPassword() {
         }
       );
 
-      console.log("Response received:", res.data); // Debug log
+      //console.log("Response received:", res.data); // Debug log
       toast.success(res.data?.message || "A reset link has been sent to your email.");
       
     } catch (err) {
-      console.error("Full error object:", err); // Debug log
-      console.error("Error response:", err?.response); // Debug log
-      console.error("Error data:", err?.response?.data); // Debug log
+      // console.error("Full error object:", err); // Debug log
+      // console.error("Error response:", err?.response); // Debug log
+      // console.error("Error data:", err?.response?.data); // Debug log
       
       const serverMsg = err?.response?.data?.error || err?.response?.data?.message;
       toast.error(serverMsg || "Failed to send reset email. Check console for details.");

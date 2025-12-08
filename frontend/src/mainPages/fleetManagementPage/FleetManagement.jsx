@@ -73,7 +73,7 @@ function FleetManagement() {
         {
             title: "Total Fleet", 
             value: fleetData.length, 
-            subtitle: "Trucks in operation", 
+            subtitle: "Total number of trucks", 
             icon: Truck, 
             color: "text-chart-1"
         },

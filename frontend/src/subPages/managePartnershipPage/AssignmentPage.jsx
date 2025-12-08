@@ -120,6 +120,30 @@ export default function AssignmentPage() {
     }
   }, [booking_id]);
 
+  // Filter trucks by weight capacity + show dialog if none fit
+  useEffect(() => {
+    if (!booking || availableTrucks.length === 0) return;
+
+    const requiredWeight = Number(booking.estimated_weight || 0);
+
+    // Filter only trucks that can carry the load
+    const trucksThatFit = availableTrucks.filter(
+      (t) => Number(t.capacity) >= requiredWeight
+    );
+
+    // Update UI to only show filtered trucks
+    setAvailableTrucks(trucksThatFit);
+
+    if (trucksThatFit.length === 0) {
+      setNoAvailableDialog({
+        open: true,
+        message: `No available trucks can carry the required weight of ${requiredWeight} kg.`
+      });
+    }
+  }, [booking, availableTrucks.length]);
+
+
+
   const handleAssign = async () => {
     if (!selectedTruck || !selectedDriver) {
       toast.error("Please select a truck and driver");

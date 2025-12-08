@@ -11,11 +11,17 @@ import Services from '@/mainPages/servicesPage/Services'
 import Fleet from '@/mainPages/fleetManagementPage/FleetManagement'
 import Employees from '@/mainPages/employeeManagementPage/EmployeeManagement'
 import Operations from '@/mainPages/operationsPage/Operations'
-import SOAGeneration from '@/mainPages/soaGenerationPage/SOAGeneration'
+
+import SOADashboard from '@/mainPages/soaGenerationPage/SOADashboard'
+// sub pages of SOA
+import SOAGeneration from "@/mainPages/soaGenerationPage/SOAGeneration";
+
 import Settings from '@/mainPages/settingsPage/Settings'
 
 // sub pages
 import ManageLipatBahay from '@/subPages/manageLipatBahayPage/ManageLipatBahay'
+import CreateLipatBahayBooking from "@/subPages/manageLipatBahayPage/CreateLipatBahay";
+import AssignmentPageLipatBahay from "@/subPages/manageLipatBahayPage/AssignmentPageLipatBahay";
 
 import ManagePartnership from '@/subPages/managePartnershipPage/ManagePartnership'
 import CreatePartnershipBooking from '@/subPages/managePartnershipPage/CreateDelivery'
@@ -35,7 +41,11 @@ function App() {
             <Route path="fleet-management" element={<Fleet />} />
             <Route path="employee-management" element={<Employees />} />
             <Route path="operations" element={<Operations />} />
-            <Route path="soa-generation" element={<SOAGeneration />} />
+
+            <Route path="soa-generation" element={<SOADashboard />} />
+            {/* SOA Sub Page */}
+            <Route path="/soa-generation/generate" element={<SOAGeneration />} />
+
             <Route path="settings" element={<Settings />} />
 
             {/* Sub Pages */}
@@ -46,7 +56,9 @@ function App() {
 
 
             <Route path="lipat-bahay" element={<ManageLipatBahay />} />
-            
+            {/* LipatBahay Sub Page */}
+            <Route path="/lipat-bahay/create" element={<CreateLipatBahayBooking />} />
+            <Route path="assignment_lipatbahay/:booking_id" element={<AssignmentPageLipatBahay />} />
 
           </Routes >
           <Toaster richColors position="top-center"/>

@@ -1,56 +1,56 @@
 <?php
-/**
- * Simple rate limiter to prevent brute force attacks
- * Usage: require_once 'rate_limiter.php'; rateLimit('login', 5, 300);
- */
+// Database-based rate limiter (best for InfinityFree)
 
-function rateLimit($action, $maxAttempts = 5, $timeWindow = 300) {
+require_once 'db.php';
+
+// Check if this IP or email has exceeded attempts
+function checkRateLimit($email, $maxAttempts = 5, $windowSeconds = 300) {
+    global $conn;
+
     $ip = $_SERVER['REMOTE_ADDR'];
-    $key = "rate_limit_{$action}_{$ip}";
-    
-    // Store in a simple file-based system (for production, use Redis or Memcached)
-    $rateLimitFile = sys_get_temp_dir() . "/rate_limit_" . md5($key) . ".json";
-    
-    $data = [];
-    if (file_exists($rateLimitFile)) {
-        $data = json_decode(file_get_contents($rateLimitFile), true);
-    }
-    
-    $now = time();
-    
-    // Clean old attempts outside the time window
-    $data['attempts'] = array_filter($data['attempts'] ?? [], function($timestamp) use ($now, $timeWindow) {
-        return ($now - $timestamp) < $timeWindow;
-    });
-    
-    // Check if limit exceeded
-    if (count($data['attempts']) >= $maxAttempts) {
-        $oldestAttempt = min($data['attempts']);
-        $waitTime = $timeWindow - ($now - $oldestAttempt);
-        
-        http_response_code(429);
-        echo json_encode([
-            'error' => 'Too many attempts. Please try again later.',
-            'retry_after' => $waitTime
-        ]);
-        exit;
-    }
-    
-    // Add current attempt
-    $data['attempts'][] = $now;
-    file_put_contents($rateLimitFile, json_encode($data));
+    $windowStart = date('Y-m-d H:i:s', time() - $windowSeconds);
+
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) AS attempts 
+        FROM login_attempts 
+        WHERE attempt_time > ? 
+        AND (ip_address = ? OR email = ?)
+    ");
+
+    $stmt->bind_param("sss", $windowStart, $ip, $email);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+
+    return (int)$result['attempts'];
 }
 
-/**
- * Clear rate limit for successful actions (e.g., after successful login)
- */
-function clearRateLimit($action) {
+// Record a failed login attempt
+function recordFailedAttempt($email) {
+    global $conn;
+
     $ip = $_SERVER['REMOTE_ADDR'];
-    $key = "rate_limit_{$action}_{$ip}";
-    $rateLimitFile = sys_get_temp_dir() . "/rate_limit_" . md5($key) . ".json";
-    
-    if (file_exists($rateLimitFile)) {
-        unlink($rateLimitFile);
-    }
+    $now = date('Y-m-d H:i:s');
+
+    $stmt = $conn->prepare("
+        INSERT INTO login_attempts (ip_address, email, attempt_time)
+        VALUES (?, ?, ?)
+    ");
+
+    $stmt->bind_param("sss", $ip, $email, $now);
+    $stmt->execute();
 }
-?>
+
+// Clear attempts on successful login
+function clearRateLimit($email) {
+    global $conn;
+
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    $stmt = $conn->prepare("
+        DELETE FROM login_attempts 
+        WHERE ip_address = ? OR email = ?
+    ");
+
+    $stmt->bind_param("ss", $ip, $email);
+    $stmt->execute();
+}

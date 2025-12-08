@@ -14,6 +14,8 @@ export function DocumentPreview({ open, onOpenChange, document }) {
   if (!document) return null;
 
   const isPDF = document.match(/\.pdf$/i);
+  console.log(document)
+  
 
   const handleDownload = () => {
     const link = document.createElement("a")
@@ -66,7 +68,7 @@ export function DocumentPreview({ open, onOpenChange, document }) {
             </div>
 
             {/* FOOTER */}
-            <div className="p-4 border-t flex justify-end">
+            <div className="p-4 pb-0 border-t flex justify-end">
             <DialogClose asChild>
                 <Button>Close</Button>
             </DialogClose>

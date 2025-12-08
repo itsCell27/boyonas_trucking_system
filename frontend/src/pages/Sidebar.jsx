@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom"
 
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/app/dashboard" },
-  { name: "Services", icon: Wrench, path: "/app/services" },
+//   { name: "Services", icon: Wrench, path: "/app/services" },
   { name: "Fleet Management", icon: Truck, path: "/app/fleet-management" },
   { name: "Employee Management", icon: Users, path: "/app/employee-management" },
   { name: "Operations", icon: BarChart3, path: "/app/operations" },

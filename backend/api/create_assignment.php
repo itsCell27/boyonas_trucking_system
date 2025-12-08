@@ -144,10 +144,16 @@ try {
   }
 
   // 10. Log the initial status
-  $log_status = 'Pending';
+  $log_status = 'Assigned';
   $log_remarks = 'Assignment created';
   $user_id = $_SESSION['user_id'];
-  $stmt = $conn->prepare("INSERT INTO status_logs (assignment_id, status, remarks, updated_by) VALUES (?, ?, ?, ?)");
+  $stmt = $conn->prepare("
+      INSERT INTO status_logs (assignment_id, booking_id, status, remarks, updated_by) 
+      VALUES (?, ?, ?, ?, ?)
+  ");
+  $stmt->bind_param("iissi", $assignment_id, $booking_id, $log_status, $log_remarks, $user_id);
+  $stmt->execute();
+  $stmt->close();
   // Note: status_logs enum doesn't have 'Pending', so we'll skip this or use a valid status
   // Let's comment this out since 'Pending' is not in the enum
   // $stmt->bind_param("issi", $assignment_id, $log_status, $log_remarks, $user_id);

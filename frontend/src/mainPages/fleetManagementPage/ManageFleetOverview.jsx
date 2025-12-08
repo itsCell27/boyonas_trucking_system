@@ -20,13 +20,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { TruckDetailsModal } from "./TruckDetailsModal"
+import { ReusableFormDialog } from "@/components/ReusableFormDialog"
 import { useState } from "react"
 import { API_BASE_URL } from "@/config"
 import axios from "axios"
 
+
 export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTruck, setSelectedTruck] = useState(null);
+
+    // Set Truck status to Maintenance Dialog Form
+    const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
+    const [maintenanceTruckId, setMaintenanceTruckId] = useState(null)
 
     const handleViewDetails = (truck) => {
         setSelectedTruck(truck);
@@ -59,23 +65,24 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
         }
     };
 
-    const updateTruckStatus = async (truckId, newStatus) => {
+    // Centralized API + error handling, now with optional remarks
+    const updateTruckStatus = async (truckId, newStatus, remarks = "") => {
         try {
-            const res = await axios.post(
-                `${API_BASE_URL}/update_truck_status.php`,
-                { truck_id: truckId, operational_status: newStatus },
-                { withCredentials: true }
-            );
+        const res = await axios.post(
+            `${API_BASE_URL}/update_truck_status.php`,
+            { truck_id: truckId, operational_status: newStatus, remarks },
+            { withCredentials: true }
+        )
 
-            if (res.data.success) {
-                fetchFleetData(); // refresh parent FleetManagement
-            } else {
-                console.error("Failed to update truck:", res.data);
-            }
-        } catch (err) {
-            console.error("Update error:", err);
+        if (res.data.success) {
+            fetchFleetData() // refresh parent FleetManagement
+        } else {
+            console.error("Failed to update truck:", res.data)
         }
-    };
+        } catch (err) {
+        console.error("Update error:", err)
+        }
+    }
 
 
     return (
@@ -138,7 +145,10 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
                                                         ? "opacity-40 cursor-not-allowed"
                                                         : "hover:bg-accent"
                                                 }
-                                                onClick={() => updateTruckStatus(vehicle.truck_id, "Maintenance")}
+                                                onClick={() => {
+                                                    setMaintenanceTruckId(vehicle.truck_id);
+                                                    setIsMaintenanceDialogOpen(true);
+                                                }}
                                             >
                                                 Set to Maintenance
                                             </DropdownMenuItem>
@@ -202,6 +212,26 @@ export default function ManageFleetOverview({ fleetData, fetchFleetData }) {
                                     View Details
                                     </Button>
                                 </div>
+
+
+                                {/* Remarks Dialog Field when setting a truck status to maintenance */}
+                                <ReusableFormDialog
+                                    open={isMaintenanceDialogOpen}
+                                    onOpenChange={setIsMaintenanceDialogOpen}
+                                    title="Set Truck to Maintenance"
+                                    description="Add remarks for setting this truck to maintenance."
+                                    submitLabel="Set to Maintenance"
+                                    fields={[
+                                        { id: "remarks", label: "Remarks (optional)", placeholder: "Enter reason for maintenance..." },
+                                    ]}
+                                    onSubmit={async (values) => {
+                                        await updateTruckStatus(
+                                            maintenanceTruckId,
+                                            "Maintenance",
+                                            values.remarks
+                                        )
+                                    }}
+                                />
                                 </CardContent>
                             </Card>
                             

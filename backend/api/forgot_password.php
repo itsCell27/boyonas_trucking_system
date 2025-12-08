@@ -103,10 +103,10 @@ try {
             <tr>
                 <td style="padding:22px 28px;border-bottom:1px solid {$border};">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:44px;height:44px;border-radius:10px;background:{$primary};display:inline-block;text-align:center;line-height:44px;font-weight:600;color:#fff;font-size:18px;">
+                    <!-- <div style="width:44px;height:44px;border-radius:10px;background:{$primary};display:inline-block;text-align:center;line-height:44px;font-weight:600;color:#fff;font-size:18px;"> -->
                     <!-- Logo fallback: first letter -->
-                    {$company[0]}
-                    </div>
+                    <!-- {$company[0]} -->
+                    <!-- </div> -->
                     <div style="font-size:16px;font-weight:600;color:{$text};">{$company}</div>
                 </div>
                 </td>
@@ -156,9 +156,9 @@ try {
                     <td style="font-size:13px;color:{$muted};">
                         &copy; {$company} — If you need help, reply to this email.
                     </td>
-                    <td align="right" style="font-size:13px;color:{$muted};">
+                    <!-- <td align="right" style="font-size:13px;color:{$muted};">
                         <a href="#" style="color:{$accent};text-decoration:none;">Manage my account</a>
-                    </td>
+                    </td> -->
                     </tr>
                 </table>
                 </td>

@@ -10,33 +10,20 @@ ini_set('display_errors', 1);
 $service_type = $_GET['service_type'] ?? 'Partnership';
 $status = $_GET['status'] ?? '';
 
-$sql = "SELECT 
-            b.booking_id, 
-            b.service_type, 
-            b.dr_number, 
-            b.partner_name, 
-            b.route_from, 
-            b.route_to,
-            b.scheduled_start, 
-            b.deadline, 
-            b.estimated_weight, 
-            b.category, 
-            b.status, 
-            b.date_created, 
-            b.created_by
-        FROM bookings b
-        WHERE b.service_type = ?";
+$sql = "SELECT * 
+        FROM bookings 
+        WHERE service_type = ?";
 
 $params = [$service_type];
 $types = "s";
 
 if ($status !== "") {
-    $sql .= " AND b.status = ?";
+    $sql .= " AND status = ?";
     $params[] = $status;
     $types .= "s";
 }
 
-$sql .= " ORDER BY b.date_created DESC";
+$sql .= " ORDER BY date_created DESC";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {

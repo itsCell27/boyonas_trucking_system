@@ -34,9 +34,22 @@ export default function CreatePartnershipBooking() {
     created_by: 1,
   })
 
+  const [errors, setErrors] = useState({
+    schedule: "",
+    deadline: "", 
+  });
+
   // capacity states
   const [maxCapacity, setMaxCapacity] = useState(null)      // NEW
   const [isWeightValid, setIsWeightValid] = useState(true)  // NEW
+
+  const isFormInvalid =
+  errors.schedule !== "" ||
+  errors.deadline !== "" ||
+  !formData.scheduled_start ||
+  !formData.deadline ||
+  !formData.estimated_weight ||
+  (formData.service_rate !== undefined && formData.service_rate === "");
 
   // Fetch the highest available truck capacity once (or every time step becomes 2)
   useEffect(() => {
@@ -97,8 +110,8 @@ export default function CreatePartnershipBooking() {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!formData.partner_name || !formData.route_from || !formData.route_to) {
-        alert("Please fill in all required fields")
+      if (!formData.partner_name || !formData.route_from || !formData.route_to || !formData.category) {
+        toast.warning("Please fill in all required fields")
         return
       }
       setStep(2)
@@ -114,6 +127,23 @@ export default function CreatePartnershipBooking() {
 
     if (!formData.scheduled_start || !formData.deadline || !formData.estimated_weight) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    // Date objects
+    const start = new Date(formData.scheduled_start);
+    const deadline = new Date(formData.deadline);
+    const now = new Date();
+
+    // Past start
+    if (start < now) {
+      toast.error("Scheduled start cannot be in the past.");
+      return;
+    }
+
+    // Invalid timeline
+    if (deadline <= start) {
+      toast.error("Deadline must be after the scheduled start.");
       return;
     }
 
@@ -270,8 +300,48 @@ export default function CreatePartnershipBooking() {
                   name="scheduled_start"
                   type="datetime-local"
                   value={formData.scheduled_start}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData({ ...formData, scheduled_start: value });
+
+                    // Real-time validation
+                    const start = new Date(value);
+                    const now = new Date();
+
+                    let newErrors = { ...errors };
+
+                    // Compare only the date portion (ignore time)
+                    const startDay = new Date(
+                      start.getFullYear(),
+                      start.getMonth(),
+                      start.getDate()
+                    );
+                    const today = new Date(
+                      now.getFullYear(),
+                      now.getMonth(),
+                      now.getDate()
+                    );
+
+                    if (startDay < today) {
+                      newErrors.schedule = "Start date cannot be before today.";
+                    } else {
+                      newErrors.schedule = "";
+                    }
+
+
+                    if (formData.deadline) {
+                      const deadline = new Date(formData.deadline);
+                      newErrors.deadline =
+                        deadline <= start ? "Deadline must be after the start date & time." : "";
+                    }
+
+                    setErrors(newErrors);
+                  }}
                 />
+                {errors.schedule && (
+                  <p className="text-destructive text-sm mt-1">{errors.schedule}</p>
+                )}
+
               </div>
 
               <div className="space-y-2">
@@ -281,8 +351,24 @@ export default function CreatePartnershipBooking() {
                   name="deadline"
                   type="datetime-local"
                   value={formData.deadline}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData({ ...formData, deadline: value });
+
+                    const start = new Date(formData.scheduled_start);
+                    const deadline = new Date(value);
+
+                    let newErrors = { ...errors };
+
+                    newErrors.deadline =
+                      deadline <= start ? "Deadline must be after the start date & time." : "";
+
+                    setErrors(newErrors);
+                  }}
                 />
+                {errors.deadline && (
+                  <p className="text-destructive text-sm mt-1">{errors.deadline}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -314,7 +400,7 @@ export default function CreatePartnershipBooking() {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button className="flex-1" onClick={handleSubmit} disabled={!isWeightValid || (maxCapacity === 0)}>
+                <Button className="flex-1" onClick={handleSubmit} disabled={!isWeightValid || (maxCapacity === 0) || isFormInvalid}>
                   Create & Assign Driver
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

@@ -6,28 +6,28 @@ const operationsSummaryCards = [
     {
         title: "Total Deliveries Today",
         value: 24,
-        subtitle: "+12% from yesterday",
+        //subtitle: "+12% from yesterday",
         icon: Package,
         color: "text-chart-1"
     },
     {
         title: "Total Trucks Deployed",
         value: "8/10",
-        subtitle: "+12% from yesterday",
+        //subtitle: "+12% from yesterday",
         icon: Truck,
         color: "text-chart-2"
     },
     {
         title: "Completed Deliveries Today",
         value: 12,
-        subtitle: "+2 from yesterday",
+        //subtitle: "+2 from yesterday",
         icon: User,
         color: "text-chart-3"
     },
     {
         title: "Pending Deliveries",
         value: "2",
-        subtitle: "-1 from yesterday",
+        //subtitle: "-1 from yesterday",
         icon: Clock,
         color: "text-chart-4"
     },
