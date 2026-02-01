@@ -1,135 +1,254 @@
-<?php
-require_once 'config.php';
+    <?php
+    // add_truck.php
+    require_once 'cors.php';
+    require_once 'db.php';
 
-// CORS and session setup
-header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Credentials: true");
+    header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
-
-session_set_cookie_params([
-    'lifetime' => 86400,
-    'path' => '/',
-    'domain' => 'localhost',
-    'secure' => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
-session_start();
-require_once 'db.php';
-
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'User not logged in']);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit;
-}
-
-$plate_number = $_POST['plate_number'] ?? null;
-$model = $_POST['model'] ?? null;
-$capacity = $_POST['capacity'] ?? null;
-$year = $_POST['year'] ?? null;
-$operational_status = $_POST['operational_status'] ?? 'Available';
-$document_status = $_POST['document_status'] ?? 'Valid';
-$status = $_POST['status'] ?? 'Okay to Use';
-$remarks = $_POST['remarks'] ?? null;
-
-if (!$plate_number || !$model || !$capacity || !$year) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing required truck data']);
-    exit;
-}
-
-$conn->begin_transaction();
-
-try {
-    $image_path = null;
-    $image_upload_dir = UPLOAD_ROOT . TRUCK_IMAGES_DIR;
-    $doc_upload_dir = UPLOAD_ROOT . TRUCK_DOCUMENTS_DIR;
-
-    if (!is_dir($image_upload_dir)) {
-        mkdir($image_upload_dir, 0777, true);
-    }
-    if (!is_dir($doc_upload_dir)) {
-        mkdir($doc_upload_dir, 0777, true);
+    // Ensure request method
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+        exit;
     }
 
-    // ===== UPDATED: Generate unique filename for truck image =====
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        // Extract file extension from original filename
-        $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        // Generate unique filename to prevent conflicts
-        $unique_filename = uniqid('truck_img_', true) . '.' . $file_extension;
-        $image_path = $image_upload_dir . $unique_filename;
-        if (!move_uploaded_file($_FILES['image']['tmp_name'], $image_path)) {
-            throw new Exception('Failed to move uploaded image');
-        }
-    }
-
-    $stmt = $conn->prepare("INSERT INTO trucks (plate_number, model, capacity, year, operational_status, document_status, status, remarks, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssissssss", $plate_number, $model, $capacity, $year, $operational_status, $document_status, $status, $remarks, $image_path);
-    $stmt->execute();
-    $truck_id = $stmt->insert_id;
-    $stmt->close();
-
-    function handle_upload($file_key, $truck_id, $doc_type, $conn, $upload_dir) {
-        if (isset($_FILES[$file_key]) && $_FILES[$file_key]['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES[$file_key];
-            //$file_path = $upload_dir . basename($file['name']);
-
-            // ===== UPDATED: Generate unique filename for documents =====
-            // Extract file extension from original filename
-            $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            // Generate unique filename with document type prefix (e.g., OR_doc_xxxxx.pdf)
-            $unique_filename = uniqid($doc_type . '_doc_', true) . '.' . $file_extension;
-            $file_path = $upload_dir . $unique_filename;
-
-            if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                //$expiry_date = $_POST[$doc_type . '_expiry_date'] ?? null;
-
-                // Fixed: Use lowercase for expiry date key to match frontend
-                $expiry_date_key = strtolower($doc_type) . '_expiry_date';
-                $expiry_date = $_POST[$expiry_date_key] ?? null;
-                
-                if (!$expiry_date) {
-                    throw new Exception("Expiry date is required for {$doc_type} document");
-                }
-
-                $doc_status = 'Valid';
-                if ($expiry_date && new DateTime($expiry_date) < new DateTime()) {
-                    $doc_status = 'Expired';
-                }
-
-                $stmt = $conn->prepare("INSERT INTO truck_documents (truck_id, document_type, file_path, expiry_date, status) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("issss", $truck_id, $doc_type, $file_path, $expiry_date, $doc_status);
-                $stmt->execute();
-                $stmt->close();
-            } else {
-                throw new Exception("Failed to move uploaded file for {$doc_type}");
+    // Helper: ensure upload directory exists
+    function ensure_dir($path) {
+        if (!is_dir($path)) {
+            if (!mkdir($path, 0755, true) && !is_dir($path)) {
+                throw new Exception("Failed to create directory: $path");
             }
         }
     }
 
-    handle_upload('or_document', $truck_id, 'OR', $conn, $doc_upload_dir);
-    handle_upload('cr_document', $truck_id, 'CR', $conn, $doc_upload_dir);
+    // Helper: safe filename
+    function unique_filename($dir, $original) {
+        $ext = pathinfo($original, PATHINFO_EXTENSION);
+        $base = pathinfo($original, PATHINFO_FILENAME);
+        $base = preg_replace('/[^A-Za-z0-9_\-]/', '_', $base);
+        $uniq = $base . '_' . time() . '_' . bin2hex(random_bytes(4));
+        return $uniq . ($ext ? '.' . $ext : '');
+    }
 
-    $conn->commit();
-    echo json_encode(['success' => 'Truck added successfully', 'truck_id' => $truck_id]);
+    // Read form fields (multipart/form-data)
+    $plate_number = isset($_POST['plate_number']) ? trim($_POST['plate_number']) : '';
+    $model = isset($_POST['model']) ? trim($_POST['model']) : '';
+    $capacity = isset($_POST['capacity']) ? trim($_POST['capacity']) : '';
+    $year = isset($_POST['year']) ? trim($_POST['year']) : '';
+    $status = isset($_POST['status']) ? trim($_POST['status']) : 'Okay to Use';
+    $or_expiry_date = isset($_POST['or_expiry_date']) ? trim($_POST['or_expiry_date']) : null;
+    $cr_expiry_date = isset($_POST['cr_expiry_date']) ? trim($_POST['cr_expiry_date']) : null;
+    $remarks = isset($_POST['remarks']) ? trim($_POST['remarks']) : '';
 
-} catch (Exception $e) {
-    $conn->rollback();
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
-}
+    // Basic validation
+    if ($plate_number === '' || $model === '' || $capacity === '' || $year === '') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+        exit;
+    }
 
-$conn->close();
-?>
+    try {
+        // 1) check unique plate_number
+        $checkStmt = $conn->prepare("SELECT truck_id FROM trucks WHERE plate_number = ?");
+        $checkStmt->bind_param("s", $plate_number);
+        $checkStmt->execute();
+        $checkStmt->store_result();
+        if ($checkStmt->num_rows > 0) {
+            $checkStmt->close();
+            http_response_code(409);
+            echo json_encode(['success' => false, 'error' => 'Plate number already exists']);
+            exit;
+        }
+        $checkStmt->close();
+
+        // Prepare upload dirs (relative to this file)
+        $baseImagesDir = __DIR__ . '/../private_uploads/images/truck_images/';
+        $baseDocsDir = __DIR__ . '/../private_uploads/documents/truck_documents/';
+
+        ensure_dir($baseImagesDir);
+        ensure_dir($baseDocsDir);
+
+        // Begin transaction
+        $conn->begin_transaction();
+
+        // Handle optional image upload
+        $image_path_db = null;
+        if (!empty($_FILES['image']) && is_uploaded_file($_FILES['image']['tmp_name'])) {
+            $img = $_FILES['image'];
+            // validate MIME type minimally
+            $allowedImageTypes = ['image/jpeg','image/png','image/gif','image/webp'];
+            if (!in_array(mime_content_type($img['tmp_name']), $allowedImageTypes, true)) {
+                throw new Exception("Invalid image file type.");
+            }
+            $imageFilename = unique_filename($baseImagesDir, $img['name']);
+            $dest = $baseImagesDir . $imageFilename;
+            if (!move_uploaded_file($img['tmp_name'], $dest)) {
+                throw new Exception("Failed to move uploaded image.");
+            }
+            // store path relative to project (same style as SQL dump)
+            $image_path_db = "../private_uploads/images/truck_images/" . $imageFilename;
+        }
+
+        // Insert truck with temporary document_status (we will compute after doc uploads)
+        $initial_document_status = 'Valid'; // default - will update if any expired
+        $insertTruck = $conn->prepare("
+            INSERT INTO trucks (plate_number, model, capacity, year, operational_status, document_status, status, image_path, remarks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        if ($insertTruck === false) throw new Exception("Prepare failed: " . $conn->error);
+
+        // operational_status default: Available
+        $operational_status = 'Available';
+        $insertTruck->bind_param(
+            "ssissssss",
+            $plate_number,
+            $model,
+            $capacity,
+            $year,
+            $operational_status,
+            $initial_document_status,
+            $status,
+            $image_path_db,
+            $remarks
+        );
+
+        if (!$insertTruck->execute()) {
+            throw new Exception("Failed to insert truck: " . $insertTruck->error);
+        }
+
+        $truck_id = $conn->insert_id;
+        $insertTruck->close();
+
+        // We'll track whether any doc is expired
+        $anyExpired = false;
+
+        // Helper to process a document file and insert into truck_documents
+        $processDocument = function($fileFieldName, $expiryDateField, $docType) use (
+            $conn, $baseDocsDir, $truck_id, &$anyExpired
+        ) {
+            if (empty($_FILES[$fileFieldName]) || !is_uploaded_file($_FILES[$fileFieldName]['tmp_name'])) {
+                return null;
+            }
+            $file = $_FILES[$fileFieldName];
+
+            // Minimal MIME validation - allow common doc types + images
+            $allowed = [
+                'application/pdf','application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'image/jpeg','image/png','image/gif','image/webp'
+            ];
+            $mime = mime_content_type($file['tmp_name']);
+            if (!in_array($mime, $allowed, true)) {
+                throw new Exception("Invalid document file type for {$docType}.");
+            }
+
+            $filename = unique_filename($baseDocsDir, $file['name']);
+            $dest = $baseDocsDir . $filename;
+            if (!move_uploaded_file($file['tmp_name'], $dest)) {
+                throw new Exception("Failed to move uploaded document ({$docType}).");
+            }
+
+            // expiry date from corresponding form field
+            $expiry_date = isset($_POST[$expiryDateField]) && $_POST[$expiryDateField] !== '' ? $_POST[$expiryDateField] : null;
+
+            // Validate expiry date (YYYY-MM-DD)
+            $expiry_sql_date = null;
+            $status = 'Valid';
+            if ($expiry_date) {
+                $d = date_create_from_format('Y-m-d', $expiry_date);
+                if (!$d) {
+                    throw new Exception("Invalid expiry date for {$docType}.");
+                }
+                $expiry_sql_date = $d->format('Y-m-d');
+
+                // Compare to today
+                $today = new DateTimeImmutable('today');
+                $exp = new DateTimeImmutable($expiry_sql_date);
+                if ($exp < $today) {
+                    $status = 'Expired';
+                    $anyExpired = true;
+                }
+            }
+
+            // Insert truck_documents row
+            $file_path_db = "../private_uploads/documents/truck_documents/" . $filename;
+            $ins = $conn->prepare("
+                INSERT INTO truck_documents (truck_id, document_type, file_path, expiry_date, status)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            if ($ins === false) throw new Exception("Prepare failed: " . $conn->error);
+
+            // if expiry_sql_date is null set NULL param
+            if ($expiry_sql_date === null) {
+                $nullExpiry = null;
+                $ins->bind_param("issss", $truck_id, $docType, $file_path_db, $nullExpiry, $status);
+            } else {
+                $ins->bind_param("issss", $truck_id, $docType, $file_path_db, $expiry_sql_date, $status);
+            }
+
+            if (!$ins->execute()) {
+                throw new Exception("Failed to insert truck document: " . $ins->error);
+            }
+            $ins->close();
+
+            return $file_path_db;
+        };
+
+        // Process OR document (field names: or_document, or_expiry_date)
+        $or_path = $processDocument('or_document', 'or_expiry_date', 'OR');
+
+        // Process CR document
+        $cr_path = $processDocument('cr_document', 'cr_expiry_date', 'CR');
+
+        // If any document marked expired, update trucks.document_status = 'Expired'
+        if ($anyExpired) {
+            // Document expired → Truck should not be used
+            $u = $conn->prepare("
+                UPDATE trucks 
+                SET document_status = 'Expired',
+                    operational_status = 'Maintenance'
+                WHERE truck_id = ?
+            ");
+        } else {
+            // All documents valid
+            $u = $conn->prepare("
+                UPDATE trucks 
+                SET document_status = 'Valid',
+                    operational_status = 'Available'
+                WHERE truck_id = ?
+            ");
+        }
+
+        $u->bind_param("i", $truck_id);
+        if (!$u->execute()) {
+            throw new Exception("Failed to update truck status flags: " . $u->error);
+        }
+        $u->close();
+
+
+        // Commit and respond
+        $conn->commit();
+
+        echo json_encode([
+            'success' => true,
+            'truck_id' => $truck_id,
+            'message' => 'Truck added successfully',
+            'document_status' => $anyExpired ? 'Expired' : 'Valid'
+        ]);
+        exit;
+
+    } catch (Exception $e) {
+
+        // Always safe to call rollback; mysqli will ignore it if no transaction
+        $conn->rollback();
+
+        http_response_code(500);
+        error_log("add_truck.php error: " . $e->getMessage());
+
+        echo json_encode([
+            'success' => false,
+            'error' => 'Server error: ' . $e->getMessage()
+        ]);
+        exit;
+    }
+

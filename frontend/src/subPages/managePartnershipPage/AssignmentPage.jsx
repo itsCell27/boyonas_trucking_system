@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
+import { useLocation } from "react-router-dom";
 
 export default function AssignmentPage() {
   const navigate = useNavigate()
@@ -34,6 +34,10 @@ export default function AssignmentPage() {
   const [booking, setBooking] = useState(null)
 
   const [noAvailableDialog, setNoAvailableDialog] = useState({ open: false, message: "" })
+
+  // to check if navigated from create delivery page
+  const location = useLocation();
+  const fromCreateDelivery = location.state?.fromCreateDelivery || false;
 
   // fetch available trucks and employees
   const [drivers, setDrivers] = useState([])
@@ -115,6 +119,30 @@ export default function AssignmentPage() {
       navigate("/app/partnership");
     }
   }, [booking_id]);
+
+  // Filter trucks by weight capacity + show dialog if none fit
+  useEffect(() => {
+    if (!booking || availableTrucks.length === 0) return;
+
+    const requiredWeight = Number(booking.estimated_weight || 0);
+
+    // Filter only trucks that can carry the load
+    const trucksThatFit = availableTrucks.filter(
+      (t) => Number(t.capacity) >= requiredWeight
+    );
+
+    // Update UI to only show filtered trucks
+    setAvailableTrucks(trucksThatFit);
+
+    if (trucksThatFit.length === 0) {
+      setNoAvailableDialog({
+        open: true,
+        message: `No available trucks can carry the required weight of ${requiredWeight} kg.`
+      });
+    }
+  }, [booking, availableTrucks.length]);
+
+
 
   const handleAssign = async () => {
     if (!selectedTruck || !selectedDriver) {
@@ -356,7 +384,7 @@ export default function AssignmentPage() {
                   disabled={assigning}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {fromCreateDelivery ? "Assign Later" : "Back"}
                 </Button>
                 <Button 
                   className="flex-1" 

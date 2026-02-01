@@ -23,5 +23,5 @@ define('TRUCK_DOCUMENTS_DIR', $truckDocumentsDir);
 define('BOOKING_DOCS_DIR', $bookingDocsDir);
 
 define('FRONTEND_ORIGIN', $frontendOrigin);
-?>
+
 

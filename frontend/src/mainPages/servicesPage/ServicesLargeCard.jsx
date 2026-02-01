@@ -21,9 +21,7 @@ const largeCardData = [
       ],
       categoryName: "Active Partners",
       categories: [
-        { buttonName: "Flash Express", textColor: "red", backgroundColor: "red", borderColor: "red"},
-        { buttonName: "LBC Express", textColor: "yellow", backgroundColor: "yellow", borderColor: "yellow"},
-        { buttonName: "J&T Express", textColor: "blue", backgroundColor: "blue", borderColor: "blue"}
+        { buttonName: "SPX Express", textColor: "yellow", backgroundColor: "yellow", borderColor: "yellow"},
       ],
       activities: [
         { activityIcon: CircleCheckBig, iconColor: "green", text: "12 deliveries completed today"},
@@ -38,8 +36,8 @@ const largeCardData = [
       cardName: "Lipat Bahay Services",
       cardDescription: "Household moving & retail deliveries",
       cardIcon: House,
-      cardIconColor: "bg-accent/10 group-hover:bg-accent/20",
-      lucideIconStyle: "w-6 h-6 text-accent",
+      cardIconColor: "bg-primary group-hover:bg-primary/90",
+      lucideIconStyle: "w-6 h-6 text-white",
       cardButtonName: "Manage Lipat Bahay",
       cardButtonColor: "bg-transparent text-foreground hover:bg-accent/90 group-hover:bg-accent group-hover:text-accent-foreground border border-foreground/10",
       cardButtonLink: "/app/lipat-bahay",

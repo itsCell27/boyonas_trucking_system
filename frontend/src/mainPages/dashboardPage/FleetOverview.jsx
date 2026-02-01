@@ -1,6 +1,9 @@
 import { act } from 'react';
 import '../../index.css'
 import { Truck, Wrench, CircleCheckBig } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { API_BASE_URL } from '@/config';
 
 const fleetData = [
     {
@@ -45,25 +48,72 @@ const fleetData = [
     }
 ]
 
-const fleetFooterData = [
-    {
-        trucks: 8,
-        color: "text-green-600",
-        text: "Active"
-    },
-    {
-        trucks: 2,
-        color: "text-blue-600",
-        text: "Available"
-    },
-    {
-        trucks: 1,
-        color: "text-yellow-600",
-        text: "Maintenance"
-    }
-]
-
 function FleetOverview() {
+
+    const [trucks, setTrucks] = useState([]);
+
+    useEffect(() => {
+        axios.get(`${API_BASE_URL}/get_fleet_overview.php`)
+            .then(res => setTrucks(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+
+    const mapStatus = (status) => {
+        switch (status) {
+            case "On Delivery":
+                return {
+                    status: "Active",
+                    color: "text-blue-600",
+                    icon: Truck
+                };
+            case "Available":
+                return {
+                    status: "Available",
+                    color: "text-green-600",
+                    icon: CircleCheckBig
+                };
+            case "Maintenance":
+                return {
+                    status: "Maintenance",
+                    color: "text-yellow-600",
+                    icon: Wrench
+                };
+            default:
+                return {
+                    status: "Unknown",
+                    color: "text-gray-500",
+                    icon: Truck
+                };
+        }
+    };
+
+    const footerStats = {
+        active: trucks.filter(t => t.operational_status === "On Delivery").length,
+        available: trucks.filter(t => t.operational_status === "Available").length,
+        maintenance: trucks.filter(t => t.operational_status === "Maintenance").length,
+    };
+
+    const fleetFooterData = [
+        {
+            trucks: footerStats.active,
+            color: "text-blue-600",
+            text: "Active"
+        },
+        {
+            trucks: footerStats.available,
+            color: "text-green-600",
+            text: "Available"
+        },
+        {
+            trucks: footerStats.maintenance,
+            color: "text-yellow-600",
+            text: "Maintenance"
+        }
+    ]
+
+
+
     return (
         <section>
             <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm">
@@ -78,42 +128,23 @@ function FleetOverview() {
                 <div className="px-6">
                     <div className='space-y-4'>
                         {/* Fleet Overview Card Format*/}
-                        {fleetData.map((vehicle, index) => {
-
-                            const hasRouteProgress = vehicle.routeProgress.trim() !== "";
-
-                            const Icon = vehicle.icon;
-                            const iconColor = `${vehicle.statusColor} w-4 h-4`;
-                            const statusColor = `${vehicle.statusColor} text-sm`;
+                        {trucks.map((t, index) => {
+                            const mapped = mapStatus(t.operational_status);
+                            const Icon = mapped.icon;
 
                             return (
                                 <div key={index} className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <Icon className={`${iconColor}`} />
-                                            <span className="font-medium">{vehicle.vehiclePlate}</span>
+                                            <Icon className={`${mapped.color} w-4 h-4`} />
+                                            <span className="font-medium">{t.plate_number}</span>
                                         </div>
-                                        <span className={`${statusColor}`}>{vehicle.status}</span>
+                                        <span className={`${mapped.color} text-sm`}>
+                                            {mapped.status}
+                                        </span>
                                     </div>
-                                    {/* <div className="text-xs text-muted-foreground mb-2">Location: {vehicle.location}</div> */}
-                                    {/* Route Progress*/}
-                                    {/* {hasRouteProgress && // if this is true, show the progress bar */}
-                                        {/* <div className="space-y-1">
-                                            <div className="flex justify-between text-xs">
-                                                <span>Route Progress</span>
-                                                <span>{vehicle.routeProgress}%</span>
-                                            </div> */}
-                                            {/* Progress Bar */}
-                                            {/* <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate" data-max="100" data-slot="progress" className="w-full h-2 bg-primary/20 rounded-full overflow-hidden">
-                                                <div data-state="indeterminate" data-max="100" data-slot="progress-indicator" className="h-full bg-primary rounded-full transition-all duration-500"
-                                                style={{ width: `${vehicle.routeProgress}%` }}></div>
-                                            </div>
-                                        </div> */}
-                                    {/* } */}
-                                    {/* removed for now */}
-                                    
                                 </div>
-                            )
+                            );
                         })}
                         
                     </div>

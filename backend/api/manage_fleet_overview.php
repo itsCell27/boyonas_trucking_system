@@ -20,7 +20,7 @@ header("Access-Control-Allow-Credentials: true");
 try {
     require_once 'db.php';
 
-    $sql = "SELECT truck_id, plate_number, model, capacity, year, operational_status, document_status, status, image_path, remarks FROM trucks";
+    $sql = "SELECT truck_id, plate_number, model, capacity, year, operational_status, document_status, image_path, remarks FROM trucks";
     $result = $conn->query($sql);
 
     if ($result === false) {

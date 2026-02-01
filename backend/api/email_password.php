@@ -27,10 +27,17 @@ function send_password_email($email, $password) {
 
         // Content
         $mail->isHTML(true);
+        $mail->addEmbeddedImage(
+            'assets/truck_logo.png' ?? null, 
+            'logo' // CID name
+        );
         $mail->Subject = 'Welcome to ' . $_ENV['SMTP_FROM_NAME'];
         $mail->Body    = '
-            <div style="text-align: center;">
-                <img src="cid:logo" alt="' . $_ENV['SMTP_FROM_NAME'] . ' Logo" width="150">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="cid:logo" alt="' . $_ENV['SMTP_FROM_NAME'] . ' Logo" width="80">
+                <p style="font-weight: bold; margin: 0;">
+                    Boyonas Trucking System
+                </p>
             </div>
             <p>Dear New Employee,</p>
             <p>Welcome to ' . $_ENV['SMTP_FROM_NAME'] . '! We are excited to have you on our team.</p>
@@ -39,7 +46,7 @@ function send_password_email($email, $password) {
                 <li><strong>Username:</strong> ' . $email . '</li>
                 <li><strong>Temporary Password:</strong> ' . $password . '</li>
             </ul>
-            <p>For security reasons, we require that you change your temporary password upon your first login. You will be prompted to do so automatically.</p>
+            <p>For security reasons, we recommend that you change your temporary password upon your first login.</p>
             <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
             <p>Best regards,</p>
             <p>The ' . $_ENV['SMTP_FROM_NAME'] . ' Team</p>

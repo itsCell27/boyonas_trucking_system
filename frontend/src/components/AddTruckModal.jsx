@@ -9,7 +9,6 @@ function AddTruckModal({ onClose }) {
     model: '',
     capacity: '',
     year: '',
-    status: 'Okay to Use',
     or_document: null,
     or_expiry_date: '',
     cr_document: null,
@@ -108,13 +107,6 @@ function AddTruckModal({ onClose }) {
             <div>
               <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
               <input type="number" id="year" name="year" onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required />
-            </div>
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-              <select id="status" name="status" onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
-                <option>Okay to Use</option>
-                <option>Not Okay to Use</option>
-              </select>
             </div>
             <div>
               <label htmlFor="image" className="block text-sm font-medium text-gray-700">Truck Photo</label>

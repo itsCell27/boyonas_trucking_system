@@ -1,8 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Credentials: true");
+require_once 'cors.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -23,8 +20,8 @@ if (!isset($_GET['user_id'])) {
     exit;
 }
 
-$employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : 0;
-$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+$employee_id = intval($_GET['employee_id']);
+$user_id = intval($_GET['user_id']);
 
 $employee_details = [];
 
@@ -58,7 +55,46 @@ try {
     }
     $stmt->close();
 
+    // -----------------------------------------------------------------------------------
+    // NEW: Get latest assignment (1 only) sorted by assigned_date (ignores current_status)
+    // -----------------------------------------------------------------------------------
+    $assignmentQuery = "
+        SELECT 
+            a.assignment_id,
+            a.booking_id,
+            a.truck_id,
+            a.driver_id,
+            a.helper_id,
+            a.assigned_date,
+            a.current_status,
+            b.dr_number,
+            t.plate_number
+        FROM assignments a
+        LEFT JOIN bookings b ON a.booking_id = b.booking_id
+        LEFT JOIN trucks t ON a.truck_id = t.truck_id
+        WHERE a.driver_id = ? OR a.helper_id = ?
+        ORDER BY a.assigned_date DESC
+        LIMIT 1
+    ";
+
+    $stmt = $conn->prepare($assignmentQuery);
+    $stmt->bind_param("ii", $employee_id, $employee_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $latest_assignment = $result->fetch_assoc();
+    } else {
+        $latest_assignment = null;
+    }
+    $stmt->close();
+
+    // Add it to output
+    $employee_details['latest_assignment'] = $latest_assignment;
+
+    // -----------------------------------------------------------------------------------
     // Get employee documents
+    // -----------------------------------------------------------------------------------
     $stmt = $conn->prepare("SELECT * FROM employee_documents WHERE employee_id = ?");
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();

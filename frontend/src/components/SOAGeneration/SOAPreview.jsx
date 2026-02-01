@@ -1,125 +1,296 @@
+// SOAPreview.jsx  (replace your current file)
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { FileText, Edit3, Save, X } from "lucide-react";
+import axios from "axios";
+import { API_BASE_URL } from "@/config";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button"
 
-import React from 'react';
-import { FileText, Download, Send, SquarePen } from 'lucide-react';
+/* Note: This file started from your original SOAPreview.jsx. See the original for layout. :contentReference[oaicite:2]{index=2} */
 
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'paid':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'overdue':
-      return 'bg-red-100 text-red-800';
-    case 'draft':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+const statusClass = (s) => {
+  if (s === "Paid") return "bg-green-100 text-green-800";
+  if (s === "Not Yet Paid") return "bg-yellow-100 text-yellow-800";
+  if (s === "Cancelled") return "bg-red-100 text-red-800";
+  return "bg-gray-200 text-gray-800";
 };
 
-const SOAPreview = ({ record }) => {
-  if (!record) {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">SOA Preview</h2>
-        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-foreground/10 rounded-lg">
-          <div className="text-center">
-            <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Select an SOA to preview</h3>
-            <p className="mt-1 text-sm text-gray-500">The document preview will appear here.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+export default function SOAPreview({ open, onOpenChange, data }) {
+  if (!data) return null;
 
-  // Dummy data for service details table, as this wasn't in the main record object
-  const serviceDetails = [
-    { description: 'Metro Manila Deliveries', qty: 25, rate: '₱450.00', amount: '₱11,250.00' },
-    { description: 'Provincial Deliveries', qty: 15, rate: '₱650.00', amount: '₱9,750.00' },
-    { description: 'Express Deliveries', qty: 5, rate: '₱850.00', amount: '₱4,250.00' },
-  ];
-  const subtotal = 25250;
-  const tax = subtotal * 0.10;
-  const total = subtotal + tax;
+  const { soa, details } = data;
+
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false);
+  const [editedTax, setEditedTax] = useState(Number(soa.tax_percentage || 0));
+  const [editedDetails, setEditedDetails] = useState([]);
+  const [subtot, setSubtot] = useState(Number(soa.subtotal_amount || 0));
+  const [taxAmount, setTaxAmount] = useState(Number(soa.tax_amount || 0));
+  const [totalAmount, setTotalAmount] = useState(Number(soa.total_amount || 0));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // reset edit fields when dialog opens or data changes
+    setEditMode(false);
+    setEditedTax(Number(soa.tax_percentage || 0));
+    setEditedDetails(details.map((d) => ({ ...d, amount: Number(d.amount) })));
+    setSubtot(Number(soa.subtotal_amount || 0));
+    setTaxAmount(Number(soa.tax_amount || 0));
+    setTotalAmount(Number(soa.total_amount || 0));
+  }, [open, soa, details]);
+
+  const formatMoney = (n) =>
+    Number(n).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  // Recompute totals from edited details + tax whenever editedDetails or editedTax changes
+  useEffect(() => {
+    const subtotal = editedDetails.reduce((acc, r) => {
+      const v = Number(r.amount);
+      return acc + (isNaN(v) ? 0 : v);
+    }, 0);
+    const tax = Math.round((subtotal * (Number(editedTax || 0) / 100)) * 100) / 100;
+    const total = Math.round((subtotal + tax) * 100) / 100;
+    setSubtot(subtotal);
+    setTaxAmount(tax);
+    setTotalAmount(total);
+  }, [editedDetails, editedTax]);
+
+  const onChangeDetailAmount = (soa_detail_id, newVal) => {
+    setEditedDetails((prev) =>
+      prev.map((r) =>
+        r.soa_detail_id === soa_detail_id
+          ? { ...r, amount: newVal === "" ? "" : Number(newVal) }
+          : r
+      )
+    );
+  };
+
+  const validateBeforeSave = () => {
+    if (!Array.isArray(editedDetails)) return "Invalid details";
+    for (const r of editedDetails) {
+      if (r.amount === "" || r.amount === null || isNaN(r.amount)) {
+        return "All amounts must be numeric (enter 0 for zero).";
+      }
+      if (Number(r.amount) < 0) return "Amounts cannot be negative.";
+    }
+    if (isNaN(Number(editedTax)) || Number(editedTax) < 0) return "Tax percentage must be a non-negative number.";
+    return null;
+  };
+
+  const handleSave = async () => {
+    const invalid = validateBeforeSave();
+    if (invalid) {
+      toast.error(invalid);
+      return;
+    }
+
+    // Only allow saving when SOA is not Paid (server also enforces)
+    if (soa.status === "Paid") {
+      toast.error("Cannot edit a Paid SOA.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const payload = {
+        soa_id: soa.soa_id,
+        tax_percentage: Number(editedTax),
+        details: editedDetails.map((d) => ({
+          soa_detail_id: d.soa_detail_id,
+          amount: Number(d.amount),
+        })),
+      };
+
+      const resp = await axios.post(
+        `${API_BASE_URL}/update_soa_full.php`,
+        payload,
+        { withCredentials: true }
+      );
+
+      if (!resp.data.success) {
+        toast.error(resp.data.message || "Failed to save changes.");
+        setSaving(false);
+        return;
+      }
+
+      toast.success("SOA updated successfully.");
+
+      // Close dialog and refresh page (or you can trigger a parent refresh)
+      onOpenChange(false);
+
+      // simplest: refresh to show updated data across UI
+      setTimeout(() => {
+        window.location.reload();
+      }, 400);
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error while saving changes.");
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // reset state and exit edit mode
+    setEditedTax(Number(soa.tax_percentage || 0));
+    setEditedDetails(details.map((d) => ({ ...d, amount: Number(d.amount) })));
+    setEditMode(false);
+  };
 
   return (
-    <div className="bg-white flex flex-col gap-6 rounded-xl border border-foreground/10 py-6 shadow-sm">
-      <div className="px-6">
-        <div className="leading-none font-semibold flex items-center justify-between">
-          <span className="flex items-center gap-2 text-gray-800">
-            <FileText className="h-5 w-5" />
-            SOA Preview
-          </span>
-          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getStatusClass(record.status)}`}>
-            {record.status}
-          </span>
-        </div>
-      </div>
-      <div className="px-6 space-y-6">
-        <div className="space-y-4">
-          <div className="text-center border-b border-foreground/10 pb-4">
-            <h2 className="text-xl font-bold">BOYONAS TRUCKING SERVICE</h2>
-            <p className="text-sm text-gray-500">Statement of Account</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="font-medium text-gray-800">Bill To:</div>
-              <div>{record.client}</div>
-              <div className="text-gray-500">123 Business Ave, Makati City</div>
-            </div>
-            <div className="text-right">
-              <div><span className="font-medium">SOA #:</span> {record.id}</div>
-              <div><span className="font-medium">Period:</span> {record.period}</div>
-              <div><span className="font-medium">Generated:</span> {record.generatedDate}</div>
-              <div><span className="font-medium">Due Date:</span> {record.dueDate}</div>
-            </div>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div className="font-medium text-gray-800">Service Details:</div>
-          <div className="border border-foreground/10 rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left p-2 font-medium text-gray-600">Description</th>
-                  <th className="text-center p-2 font-medium text-gray-600">Qty</th>
-                  <th className="text-right p-2 font-medium text-gray-600">Rate</th>
-                  <th className="text-right p-2 font-medium text-gray-600">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {serviceDetails.map((item, index) => (
-                  <tr key={index} className="border-t border-foreground/10">
-                    <td className="p-2">{item.description}</td>
-                    <td className="text-center p-2">{item.qty}</td>
-                    <td className="text-right p-2">{item.rate}</td>
-                    <td className="text-right p-2 font-medium">{item.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="space-y-2 border-t border-foreground/10 pt-4">
-          <div className="flex justify-between text-sm text-gray-600"><span>Subtotal:</span><span>{`₱${subtotal.toFixed(2)}`}</span></div>
-          <div className="flex justify-between text-sm text-gray-600"><span>Tax (10%):</span><span>{`₱${tax.toFixed(2)}`}</span></div>
-          <div className="flex justify-between font-bold text-lg text-gray-800 border-t border-foreground/10 pt-2"><span>Total Amount:</span><span>{`₱${total.toFixed(2)}`}</span></div>
-        </div>
-        <div className="flex flex-col gap-2 pt-4">
-          <button className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium bg-primary text-white h-9 px-4 py-2 w-full hover:bg-primary/90">
-            <Download className="h-4 w-4 mr-2" />Download PDF
-          </button>
-          <button className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium border border-foreground/10 h-9 px-4 py-2 w-full bg-transparent hover:bg-accent hover:text-white">
-            <Send className="h-4 w-4 mr-2" />Send to Client
-          </button>
-          <button className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium border border-gray-300 h-9 px-4 py-2 w-full bg-transparent hover:bg-accent hover:text-white">
-            <SquarePen className="h-4 w-4 mr-2" />Edit SOA
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl p-6 rounded-xl">
+        <DialogHeader className="flex flex-row justify-between items-center mt-4">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <FileText className="h-5 w-5" /> SOA Preview
+          </DialogTitle>
 
-export default SOAPreview;
+          <div className="flex items-center gap-3">
+            {/* Hide Edit button if Paid */}
+            {soa.status !== "Paid" && (
+              <>
+                {!editMode ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setEditMode(true)}
+                    title="Edit SOA (amounts and tax)"
+                  >
+                    <Edit3 className="w-4 h-4" /> Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                    
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save"}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={saving}
+                    >
+                      <X className="w-4 h-4" /> Cancel
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
+
+            <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${statusClass(soa.status)}`}>
+              {soa.status}
+            </span>
+          </div>
+        </DialogHeader>
+
+        {/* Header */}
+        <div className="text-center border-b pb-4">
+          <h2 className="text-2xl font-bold">BOYONAS TRUCKING SERVICE</h2>
+          <p className="text-sm text-muted-foreground">Statement of Account</p>
+        </div>
+
+        {/* Bill To + SOA Info */}
+        <div className="grid grid-cols-2 gap-6 text-sm mt-4">
+          <div>
+            <p className="font-semibold">Bill To:</p>
+            <p className="text-lg">{soa.party_name}</p>
+          </div>
+
+          <div>
+            <p><strong>SOA #:</strong> {soa.soa_number}</p>
+            <p><strong>Period:</strong> {soa.date_from} → {soa.date_to}</p>
+            <p><strong>Generated:</strong> {soa.date_generated}</p>
+          </div>
+        </div>
+
+        {/* SERVICE DETAILS TABLE */}
+        <div className="mt-6">
+          <p className="font-semibold mb-2">Service Details:</p>
+
+          <table className="w-full text-sm border rounded-lg overflow-hidden">
+            <thead className="bg-muted">
+              <tr>
+                <th className="p-2 text-left">DR #</th>
+                <th className="p-2 text-left">Route</th>
+                <th className="p-2 text-left">Plate #</th>
+                <th className="p-2 text-left">Date</th>
+                <th className="p-2 text-right">Amount</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              { (editMode ? editedDetails : details).map((row) => (
+                <tr key={row.soa_detail_id} className="border-t">
+                  <td className="p-2">{row.dr_number}</td>
+                  <td className="p-2">{row.route}</td>
+                  <td className="p-2">{row.plate_number}</td>
+                  <td className="p-2">{row.delivery_date}</td>
+                  <td className="p-2 text-right font-medium">
+                    {editMode ? (
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={row.amount === "" ? "" : Number(row.amount)}
+                        onChange={(e) => onChangeDetailAmount(row.soa_detail_id, e.target.value)}
+                        className="w-28 text-right px-2 py-1 border rounded"
+                      />
+                    ) : (
+                      `₱${Number(row.amount).toLocaleString()}`
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* TOTAL SECTION */}
+        <div className="mt-6 border-t pt-4 space-y-1 text-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <p>Subtotal:</p>
+              <p className="font-medium">₱{formatMoney(subtot)}</p>
+            </div>
+
+            <div>
+              <p>Tax ({editMode ? (
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editedTax}
+                  onChange={(e) => setEditedTax(e.target.value)}
+                  className="w-20 px-2 py-1 border rounded text-right"
+                />
+              ) : (
+                `${soa.tax_percentage}%`
+              )}):</p>
+
+              <p className="font-medium">₱{formatMoney(taxAmount)}</p>
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-4 border-t pt-1">
+            <p className="text-xl font-bold mt-2">
+              Total Amount:
+            </p>
+            <p className="text-xl font-bold mt-2">₱{formatMoney(totalAmount)}</p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

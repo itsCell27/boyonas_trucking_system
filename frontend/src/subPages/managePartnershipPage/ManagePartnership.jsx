@@ -3,42 +3,35 @@ import { Plus, Funnel, Download, Route, Clock, Calendar } from 'lucide-react'
 import SPXExpressDelivery from './SPXExpressDelivery'
 import StatusCards from '../../components/StatusCards'
 import axios from 'axios'
-import { API_BASE_URL } from '../../config'
 import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Spinner } from "@/components/ui/spinner"
+import { API_BASE_URL } from '@/config'
 
 
 function ManagePartnership() {
 
-    const [counts, setCounts] = useState({
-        today_count: 0,
-        yesterday_count: 0,
-        tomorrow_count: 0,
-    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [stats, setStats] = useState(null);
+
     useEffect(() => {
         axios
-        .get("http://localhost/react_trucking_system/backend/api/get_partnership_bookings.php", {
-            withCredentials: true,
+        .get(`${API_BASE_URL}/manage_partnership_stats.php`, {
+            withCredentials: true
         })
-        .then((response) => {
-            if (response.data && response.data.counts) {
-            setCounts(response.data.counts);
-            } else {
-            setError("No count data found.");
-            }
+        .then((res) => {
+            setStats(res.data);
             setLoading(false);
         })
         .catch((err) => {
-            console.error("Error fetching booking counts:", err);
-            setError("Failed to fetch booking counts.");
-            setLoading(false);
+            console.error("Error fetching dashboard stats:", err);
+            toast.error("Failed to load dashboard statistics.", err.message);
         });
     }, []);
+
     
 
     const headerContent = [
@@ -70,28 +63,38 @@ function ManagePartnership() {
     const partnershipCards = [
         {
             title: "Routes Today",
-            value: "5",
+            value: stats?.routes_today?.total ?? 0,
             color: "text-chart-1",
             icon: Route,
-            subtitle: "3 completed, 2 ongoing"
+            subtitle: `${stats?.routes_today?.completed ?? 0} completed, ${stats?.routes_today?.ongoing ?? 0} ongoing`
         },
         {
             title: "Routes Yesterday",
-            value: "8",
+            value: stats?.routes_yesterday?.total ?? 0,
             color: "text-chart-2",
             icon: Clock,
-            subtitle: "All completed"
+            subtitle: `${stats?.routes_yesterday?.completed ?? 0} completed`
         },
         {
             title: "Incoming Routes Tomorrow",
-            value: "6",
+            value: stats?.routes_tomorrow?.total ?? 0,
             color: "text-chart-3",
             icon: Calendar,
-            subtitle: "Scheduled for SPX Express"
+            subtitle:
+            stats?.routes_tomorrow?.by_partner?.[0]?.partner_name
+                ? `Scheduled for ${stats.routes_tomorrow.by_partner[0].partner_name}`
+                : "No scheduled routes"
         }
-    ]
+    ];
 
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center">
+                <Spinner className="w-10 h-10 text-primary" />
+            </div>
+        );
+    }
 
     return (
         <>

@@ -1,59 +1,84 @@
 <?php
-require_once 'config.php';
+require_once 'cors.php';
+require_once 'db.php';
+require_once 'rate_limiter.php';
 
-// CORS and session setup
-header("Access-Control-Allow-Origin: " . FRONTEND_ORIGIN);
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Credentials: true");
+header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
-
+// SESSION COOKIE CONFIG
 session_set_cookie_params([
     'lifetime' => 86400,
     'path' => '/',
-    'domain' => 'localhost',
+    'domain' => '',
     'secure' => true,
     'httponly' => true,
     'samesite' => 'None'
 ]);
 session_start();
-require_once __DIR__ . '/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents("php://input"));
-
-    if (isset($data->email) && isset($data->password)) {
-        $email = $conn->real_escape_string($data->email);
-        $plain_password = $data->password;
-
-        $sql = "SELECT u.user_id, u.name, u.email, u.password, u.contact, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id WHERE u.email = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            if (password_verify($plain_password, $user['password'])) {
-                unset($user['password']); // Do not send the hashed password to the frontend
-                $_SESSION['user_id'] = $user['user_id'];
-                echo json_encode(["success" => true, "user" => $user]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Invalid email or password"]);
-            }
-        } else {
-            echo json_encode(["success" => false, "message" => "Invalid email or password"]);
-        }
-        $stmt->close();
-    } else {
-        echo json_encode(["success" => false, "message" => "Email and password are required"]);
-    }
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(["success" => false, "message" => "Invalid request method"]);
+    exit;
 }
 
-$conn->close();
-?>
+$data = json_decode(file_get_contents("php://input"));
+
+$email = trim($data->email ?? '');
+$password = $data->password ?? '';
+
+// 1. RATE LIMIT CHECK
+$attempts = checkRateLimit($email, 5, 300);
+
+if ($attempts >= 5) {
+    http_response_code(429);
+    echo json_encode([
+        "success" => false,
+        "message" => "Too many attempts. Please try again later.",
+        "retry_after" => 300
+    ]);
+    exit;
+}
+
+if (!$email || !$password) {
+    echo json_encode(["success" => false, "message" => "Email and password are required"]);
+    exit;
+}
+
+// 2. CHECK USER
+$stmt = $conn->prepare("
+    SELECT user_id, name, email, password, role_id, is_active 
+    FROM users 
+    WHERE email = ?
+");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+
+if (!$user || !password_verify($password, $user['password'])) {
+    recordFailedAttempt($email); // 3. RECORD FAILED
+    http_response_code(401);
+    echo json_encode(["success" => false, "message" => "Invalid email or password"]);
+    exit;
+}
+
+// Block inactive users
+if ((int)$user['is_active'] === 0) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Your account has been deactivated. Please contact the administrator."]);
+    exit;
+}
+
+// 4. SUCCESS — CLEAR RATE LIMIT
+clearRateLimit($email);
+
+// 5. SET SESSION
+session_regenerate_id(true);
+$_SESSION['user_id'] = $user['user_id'];
+$_SESSION['role_id'] = $user['role_id'];
+$_SESSION['name'] = $user['name'];
+
+// Remove sensitive info
+unset($user['password'], $user['is_active']);
+
+echo json_encode(["success" => true, "user" => $user]);

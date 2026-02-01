@@ -52,7 +52,7 @@ function MenuHeader({ headerData }) {
 
 
     return (
-        <header className='border-b bg-card border-foreground/10 rounded-xl'>
+        <header className='border bg-card shadow rounded-xl'>
             <div className='container mx-auto px-6 py-4'>
                 {headerData.map((header, index) => {
                     return (
@@ -62,7 +62,7 @@ function MenuHeader({ headerData }) {
                                     <ArrowLeft className='h-5 w-5'/>
                                 </Link>
                                 <div>
-                                <h1 className="text-lg lg:text-2xl font-bold text-foreground">{header.headerName}</h1>
+                                <h1 className="text-md lg:text-2xl font-bold text-foreground">{header.headerName}</h1>
                                 <p className="text-xs lg:text-sm text-muted-foreground">{header.headerDescription}</p>
                                 </div>
                             </div>

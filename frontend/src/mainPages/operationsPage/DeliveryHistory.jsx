@@ -1,313 +1,915 @@
-import React, { useState } from 'react';
-import { Download, Filter, Search, Calendar, MapPin, Clock, Eye, Package, Home } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Download,
+  Filter,
+  Search,
+  Calendar,
+  MapPin,
+  Home,
+  Package,
+  Eye,
+} from "lucide-react";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
+} from "@/components/ui/select";
+
+import axios from "axios";
+import Fuse from "fuse.js";
+
+import { API_BASE_URL } from "@/config";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import ViewBookingDetails from "@/components/ViewBookingDetailsAll";
 
 const DeliveryHistory = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [serviceFilter, setServiceFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [driverFilter, setDriverFilter] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [serviceFilter, setServiceFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [driverFilter, setDriverFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
-  const deliveries = [
-    {
-      id: 'DR-2024-001',
-      service: 'partnership',
-      customer: 'Flash Express Hub',
-      partner: 'Flash Express',
-      route: 'Quezon City → Makati City',
-      driver: 'Juan Dela Cruz',
-      truck: 'ABC-123',
-      status: 'completed',
-      date: 'Jan 15, 2024',
-      time: '00:00',
-      revenue: 2500
-    },
-    {
-      id: 'DR-2024-002',
-      service: 'lipat bahay',
-      customer: 'Maria Santos',
-      description: '3-bedroom house',
-      route: 'Pasig City → Taguig City',
-      driver: 'Pedro Garcia',
-      truck: 'XYZ-456',
-      status: 'completed',
-      date: 'Jan 14, 2024',
-      time: '00:00',
-      revenue: 8500
-    },
-    {
-      id: 'DR-2024-003',
-      service: 'partnership',
-      customer: 'LBC Express Center',
-      partner: 'LBC Express',
-      route: 'Manila → Caloocan',
-      driver: 'Carlos Reyes',
-      truck: 'DEF-789',
-      status: 'in-progress',
-      date: 'Jan 16, 2024',
-      revenue: 1800
-    },
-    {
-      id: 'DR-2024-004',
-      service: 'lipat bahay',
-      customer: 'John Smith',
-      description: 'Office relocation',
-      route: 'Mandaluyong → Ortigas',
-      driver: 'Miguel Torres',
-      truck: 'GHI-012',
-      status: 'pending',
-      date: 'Jan 17, 2024',
-      revenue: 12000
-    },
-    {
-      id: 'DR-2024-005',
-      service: 'partnership',
-      customer: 'J&T Express Hub',
-      partner: 'J&T Express',
-      route: 'Antipolo → Marikina',
-      driver: 'Roberto Cruz',
-      truck: 'JKL-345',
-      status: 'cancelled',
-      date: 'Jan 13, 2024',
-      revenue: null
+  const [deliveries, setDeliveries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+
+  // === Pagination state ===
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // Helpers
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Map raw API row → UI delivery object
+  const mapRecordToDelivery = (r) => {
+    const service =
+      r.service_type === "Partnership" ? "partnership" : "lipat bahay";
+    const isPartnership = r.service_type === "Partnership";
+
+    const bookingStatus = r.booking_status || r.status || "";
+    const assignmentStatus = r.assignment_status || "";
+
+    let status = "pending";
+
+    if (bookingStatus === "Cancelled" || assignmentStatus === "Cancelled") {
+      status = "cancelled";
+    } else if (bookingStatus === "Completed" || assignmentStatus === "Completed") {
+      status = "completed";
+    } else if (
+      bookingStatus === "Assigned" &&
+      assignmentStatus &&
+      assignmentStatus !== "Pending"
+    ) {
+      status = "in progress";
+    } else if (
+      bookingStatus === "Pending Assignment" ||
+      assignmentStatus === "Pending"
+    ) {
+      status = "pending";
     }
-  ];
 
+    return {
+      booking_id: r.booking_id,
+      id: r.dr_number || `BK-${r.booking_id}`,
+      service,
+      customer: isPartnership
+        ? r.partner_name || "N/A"
+        : r.customer_name || "N/A",
+      partner: isPartnership ? r.partner_name : null,
+      description: !isPartnership ? r.category || "" : "",
+      route: `${r.route_from || "N/A"} → ${r.route_to || "N/A"}`,
+      driver: r.driver_name || "Unassigned",
+      truck: r.plate_number || "Unassigned",
+      status,
+      date: formatDate(r.scheduled_start),
+      time: formatTime(r.scheduled_start),
+      revenue: r.soa_amount != null ? Number(r.soa_amount) : null,
+      dateRaw: r.scheduled_start,
+    };
+  };
+
+  // Fetch data
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/get_delivery_history.php`,
+          { withCredentials: true }
+        );
+
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          const mapped = res.data.data.map(mapRecordToDelivery);
+          setDeliveries(mapped);
+        } else {
+          setError(res.data?.error || "Failed to load delivery history.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Server error while loading delivery history.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  // Status badge
   const getStatusBadge = (status) => {
     const styles = {
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      'in-progress': 'bg-blue-100 text-blue-800 border-blue-200',
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200'
+      completed: {
+        bg: "var(--color-chart-2)",
+        text: "white",
+        border: "var(--color-border)",
+        label: "Completed",
+      },
+      "in progress": {
+        bg: "var(--color-chart-1)",
+        text: "white",
+        border: "var(--color-border)",
+        label: "In Progress",
+      },
+      pending: {
+        bg: "var(--color-chart-4)",
+        text: "white",
+        border: "var(--color-border)",
+        label: "Pending",
+      },
+      cancelled: {
+        bg: "var(--color-destructive)",
+        text: "white",
+        border: "var(--color-border)",
+        label: "Cancelled",
+      },
     };
 
-    const labels = {
-      completed: 'Completed',
-      'in-progress': 'In Progress',
-      pending: 'Pending',
-      cancelled: 'Cancelled'
-    };
-
+    const s = styles[status] || styles.pending;
     return (
-      <span className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium ${styles[status]}`}>
-        {labels[status]}
+      <span
+        style={{
+          backgroundColor: s.bg,
+          color: s.text,
+          borderColor: s.border,
+        }}
+        className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium"
+      >
+        {s.label}
       </span>
     );
   };
 
-  const statusCounts = {
-    completed: deliveries.filter(d => d.status === 'completed').length,
-    inProgress: deliveries.filter(d => d.status === 'in-progress').length,
-    pending: deliveries.filter(d => d.status === 'pending').length
+  // Fuse.js
+  const fuse = useMemo(
+    () =>
+      new Fuse(deliveries, {
+        keys: ["id", "customer", "partner", "route", "driver", "truck"],
+        threshold: 0.3,
+        ignoreLocation: true,
+      }),
+    [deliveries]
+  );
+
+  const searchedDeliveries = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return deliveries;
+    return fuse.search(q).map((r) => r.item);
+  }, [deliveries, searchQuery, fuse]);
+
+  // Filters
+  const filteredDeliveries = useMemo(() => {
+    let result = [...searchedDeliveries];
+
+    if (serviceFilter !== "all") {
+      result = result.filter((d) => d.service === serviceFilter);
+    }
+
+    if (statusFilter !== "all") {
+      result = result.filter((d) => d.status === statusFilter);
+    }
+
+    if (driverFilter !== "all") {
+      result = result.filter((d) => d.driver === driverFilter);
+    }
+
+    if (fromDate) {
+      const from = new Date(fromDate);
+      result = result.filter((d) => {
+        if (!d.dateRaw) return false;
+        return new Date(d.dateRaw) >= from;
+      });
+    }
+
+    if (toDate) {
+      const to = new Date(toDate);
+      to.setHours(23, 59, 59, 999); // include the whole day
+      result = result.filter((d) => {
+        if (!d.dateRaw) return false;
+        return new Date(d.dateRaw) <= to;
+      });
+    }
+
+    return result;
+  }, [searchedDeliveries, serviceFilter, statusFilter, driverFilter, fromDate, toDate]);
+
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, serviceFilter, statusFilter, driverFilter, fromDate, toDate, deliveries]);
+
+  // Status counts
+  const statusCounts = useMemo(
+    () => ({
+      completed: filteredDeliveries.filter((d) => d.status === "completed")
+        .length,
+      inProgress: filteredDeliveries.filter(
+        (d) => d.status === "in progress"
+      ).length,
+      pending: filteredDeliveries.filter((d) => d.status === "pending").length,
+    }),
+    [filteredDeliveries]
+  );
+
+  const allDrivers = useMemo(
+    () =>
+      Array.from(new Set(deliveries.map((d) => d.driver))).filter(
+        (d) => d && d !== "Unassigned"
+      ),
+    [deliveries]
+  );
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setServiceFilter("all");
+    setStatusFilter("all");
+    setDriverFilter("all");
+    setFromDate("");
+    setToDate("");
   };
 
+  // === Pagination helpers ===
+  const totalPages = Math.max(1, Math.ceil(filteredDeliveries.length / rowsPerPage));
+
+  const paginatedDeliveries = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredDeliveries.slice(start, start + rowsPerPage);
+  }, [filteredDeliveries, currentPage]);
+
+  const startIndex = filteredDeliveries.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+  const endIndex = Math.min(currentPage * rowsPerPage, filteredDeliveries.length);
+
+  // Compact ellipsis (Option B)
+  const getPageList = (total, current) => {
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+
+    // Always include first page
+    pages.push(1);
+
+    // If current is near the start, show a few beginning pages
+    if (current === 2) {
+      pages.push(2);
+      pages.push("right-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is the first page
+    if (current === 1) {
+      pages.push("right-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is near the end
+    if (current === total - 1) {
+      pages.push("left-ellipsis");
+      pages.push(total - 1);
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is last
+    if (current === total) {
+      pages.push("left-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // Middle pages show: 1 ... current ... total
+    pages.push("left-ellipsis");
+    pages.push(current);
+    pages.push("right-ellipsis");
+    pages.push(total);
+    return pages;
+  };
+
+  const pageList = getPageList(totalPages, currentPage);
+
+  // Pagination button style C (soft ghost style)
+  const PagButton = ({ children, active, onClick, disabled, ariaLabel }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className="px-3 py-1 rounded-md text-sm transition-colors"
+      style={{
+        backgroundColor: active ? "var(--color-popover)" : "transparent",
+        color: active ? "var(--color-foreground)" : "var(--color-muted-foreground)",
+        border: "none",
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!active && !disabled) e.currentTarget.style.backgroundColor = "var(--color-hover)";
+      }}
+      onMouseLeave={(e) => {
+        if (!active && !disabled) e.currentTarget.style.backgroundColor = "transparent";
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  const exportDeliveryHistory = () => {
+    window.open(`${API_BASE_URL}/export_delivery_history_pdf.php`, "_blank");
+  };
+
+
   return (
-    <div className="flex-1 space-y-6 p-6 bg-slate-50 min-h-screen">
+    <>
+    <div className="flex-1 space-y-6 pt-6 pb-6 min-h-screen bg-(--color-background) text-(--color-foreground)">
+      {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Delivery History</h2>
-          <p className="text-slate-600">Complete record of all deliveries across both services</p>
+          <h2 className="text-2xl font-bold text-(--color-foreground)">
+            Delivery History
+          </h2>
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Complete record of all deliveries across both services
+          </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-colors">
+        <Button
+          className="flex items-center gap-2 px-4 py-2 rounded-md shadow-sm transition-colors"
+          style={{
+            backgroundColor: "var(--color-primary)",
+            color: "var(--color-primary-foreground)",
+          }}
+          type="button"
+          onClick={exportDeliveryHistory}
+        >
           <Download className="h-4 w-4" />
           Export Data
-        </button>
+        </Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="p-6 border-b border-slate-200">
+      {/* FILTER CARD */}
+      <div
+        className="rounded-xl border shadow-sm"
+        style={{
+          backgroundColor: "var(--color-card)",
+          borderColor: "var(--color-border)",
+        }}
+      >
+        <div
+          className="p-6 border-b"
+          style={{ borderColor: "var(--color-sidebar-border)" }}
+        >
           <div className="flex items-center gap-2 mb-1">
             <Filter className="h-5 w-5" />
-            <h3 className="font-semibold">Filters & Search</h3>
+            <h3 className="font-semibold text-[color:var(--color-foreground)]">
+              Filters & Search
+            </h3>
           </div>
-          <p className="text-sm text-slate-600">Filter and search through delivery records</p>
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Filter and search through delivery records
+          </p>
         </div>
 
         <div className="p-6 space-y-4">
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                className="w-full h-9 pl-10 pr-3 py-1 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search by DR number, customer, destination, or truck..."
+          {/* SEARCH BAR */}
+          <div className="flex items-center gap-2">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search DR number, customer, truck..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
               />
             </div>
-            <button className="h-9 px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-colors">
-              Search
-            </button>
-            <button className="h-9 px-4 py-2 border border-slate-300 bg-white rounded-md shadow-sm hover:bg-slate-50 transition-colors">
+
+            <Button
+              variant="outline"
+              onClick={handleClearFilters}
+            >
               Clear
-            </button>
+            </Button>
           </div>
 
+
+          {/* FILTER GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <select
-              className="h-9 px-3 py-2 border border-slate-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            {/* SERVICE */}
+            <Select
               value={serviceFilter}
-              onChange={(e) => setServiceFilter(e.target.value)}
+              onValueChange={setServiceFilter}
             >
-              <option value="all">All Services</option>
-              <option value="partnership">Partnership</option>
-              <option value="lipat bahay">Lipat Bahay</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="All Services" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Services</SelectItem>
+                <SelectItem value="partnership">Partnership</SelectItem>
+                <SelectItem value="lipat bahay">Lipat Bahay</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <select
-              className="h-9 px-3 py-2 border border-slate-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
+            {/* STATUS */}
+            <Select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onValueChange={setStatusFilter}
             >
-              <option value="all">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="in-progress">In Progress</option>
-              <option value="pending">Pending</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="in progress">In Progress</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <select
-              className="h-9 px-3 py-2 border border-slate-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
+            {/* DRIVER */}
+            <Select
               value={driverFilter}
-              onChange={(e) => setDriverFilter(e.target.value)}
+              onValueChange={setDriverFilter}
             >
-              <option value="all">All Drivers</option>
-              {[...new Set(deliveries.map(d => d.driver))].map(driver => (
-                <option key={driver} value={driver}>{driver}</option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="All Drivers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Drivers</SelectItem>
+                {allDrivers.map((driver) => (
+                  <SelectItem key={driver} value={driver}>
+                    {driver}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-10" />
-              <input
-                type="date"
-                className="h-9 w-full pl-10 pr-3 py-2 border border-slate-300 bg-white rounded-md shadow-sm hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit]:opacity-0 [&::-webkit-datetime-edit-fields-wrapper]:opacity-0"
-                style={{ colorScheme: 'light' }}
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                onFocus={(e) => e.target.showPicker?.()}
-              />
-              <span className="absolute left-10 top-1/2 transform -translate-y-1/2 text-slate-600 pointer-events-none">
-                {fromDate || 'From Date'}
-              </span>
-            </div>
 
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-10" />
-              <input
-                type="date"
-                className="h-9 w-full pl-10 pr-3 py-2 border border-slate-300 bg-white rounded-md shadow-sm hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit]:opacity-0 [&::-webkit-datetime-edit-fields-wrapper]:opacity-0"
-                style={{ colorScheme: 'light' }}
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                onFocus={(e) => e.target.showPicker?.()}
-              />
-              <span className="absolute left-10 top-1/2 transform -translate-y-1/2 text-slate-600 pointer-events-none">
-                {toDate || 'To Date'}
-              </span>
-            </div>
+            {/* FROM DATE */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  className="h-9 w-full px-3 text-left rounded-md shadow-sm flex items-center gap-2"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "var(--color-popover)",
+                    color: "var(--color-popover-foreground)",
+                  }}
+                  type="button"
+                >
+                  <Calendar className="h-4 w-4 text-(--color-muted-foreground)" />
+                  {fromDate || "From Date"}
+                </button>
+              </DialogTrigger>
+              <DialogContent
+                className="p-4 max-w-[300px]"
+                style={{
+                  backgroundColor: "var(--color-card)",
+                  color: "var(--color-card-foreground)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Select Start Date</DialogTitle>
+                </DialogHeader>
+                <CalendarComponent
+                  mode="single"
+                  selected={fromDate ? new Date(fromDate) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      const formatted = date.toLocaleDateString("en-CA");
+                      setFromDate(formatted);
+                    }
+                  }}
+                  className="rounded-md border shadow-sm w-full"
+                  captionLayout="dropdown"
+                />
+              </DialogContent>
+            </Dialog>
+
+            {/* TO DATE */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  className="h-9 w-full px-3 text-left rounded-md shadow-sm flex items-center gap-2"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "var(--color-popover)",
+                    color: "var(--color-popover-foreground)",
+                  }}
+                  type="button"
+                >
+                  <Calendar className="h-4 w-4 text-(--color-muted-foreground)" />
+                  {toDate || "To Date"}
+                </button>
+              </DialogTrigger>
+              <DialogContent
+                className="p-4 max-w-[300px]"
+                style={{
+                  backgroundColor: "var(--color-card)",
+                  color: "var(--color-card-foreground)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Select End Date</DialogTitle>
+                </DialogHeader>
+                <CalendarComponent
+                  mode="single"
+                  selected={toDate ? new Date(toDate) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      const formatted = date.toLocaleDateString("en-CA");
+                      setToDate(formatted);
+                    }
+                  }}
+                  className="rounded-md border shadow-sm w-full"
+                  captionLayout="dropdown"
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
 
+      {/* SUMMARY */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-600">Showing {deliveries.length} of {deliveries.length} delivery records</p>
+        <p
+          className="text-sm"
+          style={{ color: "var(--color-muted-foreground)" }}
+        >
+          {loading
+            ? "Loading delivery records..."
+            : `Showing ${filteredDeliveries.length} of ${deliveries.length} delivery records`}
+        </p>
+
         <div className="flex items-center space-x-4 text-sm">
           <span className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: "var(--color-chart-2)" }}
+            />
             Completed: {statusCounts.completed}
           </span>
           <span className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: "var(--color-chart-1)" }}
+            />
             In Progress: {statusCounts.inProgress}
           </span>
           <span className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: "var(--color-chart-4)" }}
+            />
             Pending: {statusCounts.pending}
           </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* TABLE */}
+      <div
+        className="rounded-xl border shadow-sm overflow-hidden"
+        style={{
+          backgroundColor: "var(--color-card)",
+          borderColor: "var(--color-border)",
+        }}
+      >
         <div className="overflow-x-auto">
+          {error && (
+            <div className="p-4 text-sm text-red-500 border-b border-red-300">
+              {error}
+            </div>
+          )}
+
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200">
+            <thead
+              className="border-b"
+              style={{ borderColor: "var(--color-sidebar-border)" }}
+            >
               <tr>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">DR Number</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Service</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Customer/Partner</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Route</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Driver & Truck</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Status</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Date</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Revenue</th>
-                <th className="h-10 px-2 text-left align-middle font-medium text-slate-900 whitespace-nowrap">Actions</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>DR Number</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Service</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Customer/Partner</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Route</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Driver & Truck</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Status</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Date</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Revenue</th>
+                <th className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap"
+                    style={{ color: "var(--color-card-foreground)" }}>Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {deliveries.map((delivery) => (
-                <tr key={delivery.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                  <td className="p-2 align-middle font-medium">{delivery.id}</td>
+              {paginatedDeliveries.map((delivery) => (
+                <tr
+                  key={delivery.id}
+                  className="border-b transition-colors"
+                  style={{ borderColor: "var(--color-sidebar-border)" }}
+                >
+                  <td className="p-2 align-middle font-medium"
+                      style={{ color: "var(--color-card-foreground)" }}>
+                    {delivery.id}
+                  </td>
+
                   <td className="p-2 align-middle">
                     <div className="flex items-center gap-2">
-                      {delivery.service === 'partnership' ? (
-                        <Package className="h-4 w-4 text-blue-600" />
+                      {delivery.service === "partnership" ? (
+                        <Package
+                          className="h-4 w-4"
+                          style={{ color: "var(--color-chart-2)" }}
+                        />
                       ) : (
-                        <Home className="h-4 w-4 text-slate-600" />
+                        <Home
+                          className="h-4 w-4"
+                          style={{ color: "var(--color-muted-foreground)" }}
+                        />
                       )}
-                      <span className="capitalize">{delivery.service}</span>
+                      <span
+                        className="capitalize"
+                        style={{ color: "var(--color-card-foreground)" }}
+                      >
+                        {delivery.service}
+                      </span>
                     </div>
                   </td>
+
                   <td className="p-2 align-middle">
                     <div>
-                      <p className="font-medium">{delivery.customer}</p>
-                      <p className="text-xs text-slate-600">
-                        {delivery.partner ? `via ${delivery.partner}` : delivery.description}
+                      <p
+                        className="font-medium"
+                        style={{ color: "var(--color-card-foreground)" }}
+                      >
+                        {delivery.customer}
+                      </p>
+                      <p
+                        className="text-xs"
+                        style={{ color: "var(--color-muted-foreground)" }}
+                      >
+                        {delivery.partner
+                          ? `via ${delivery.partner}`
+                          : delivery.description}
                       </p>
                     </div>
                   </td>
+
                   <td className="p-2 align-middle">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-slate-400" />
+                    <div
+                      className="flex items-center gap-1"
+                      style={{ color: "var(--color-popover-foreground)" }}
+                    >
+                      <MapPin className="h-3 w-3" />
                       <span>{delivery.route}</span>
                     </div>
                   </td>
+
                   <td className="p-2 align-middle">
                     <div>
-                      <p className="font-medium">{delivery.driver}</p>
-                      <p className="text-slate-600">{delivery.truck}</p>
+                      <p
+                        className="font-medium"
+                        style={{ color: "var(--color-card-foreground)" }}
+                      >
+                        {delivery.driver}
+                      </p>
+                      <p style={{ color: "var(--color-muted-foreground)" }}>
+                        {delivery.truck}
+                      </p>
                     </div>
                   </td>
+
                   <td className="p-2 align-middle">
                     {getStatusBadge(delivery.status)}
                   </td>
+
                   <td className="p-2 align-middle">
                     <div>
-                      <p>{delivery.date}</p>
-                      {delivery.time && (
-                        <p className="text-slate-600 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {delivery.time}
-                        </p>
-                      )}
+                      <p
+                        className="font-medium"
+                        style={{ color: "var(--color-card-foreground)" }}
+                      >
+                        {delivery.date}
+                      </p>
+                      <p style={{ color: "var(--color-muted-foreground)" }}>
+                        {delivery.time}
+                      </p>
                     </div>
                   </td>
-                  <td className="p-2 align-middle font-medium">
-                    {delivery.revenue ? `₱${delivery.revenue.toLocaleString()}` : '-'}
-                  </td>
+
                   <td className="p-2 align-middle">
-                    <button className="h-8 px-3 rounded-md hover:bg-slate-100 transition-colors">
-                      <Eye className="h-4 w-4" />
-                    </button>
+                    {delivery.revenue != null ? (
+                      <span
+                        className="font-medium"
+                        style={{ color: "var(--color-card-foreground)" }}
+                      >
+                        ₱
+                        {delivery.revenue.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    ) : (
+                      <span
+                        className="text-xs"
+                        style={{ color: "var(--color-muted-foreground)" }}
+                      >
+                        N/A
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="p-2 align-middle">
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => {
+                        setSelectedBookingId(delivery.booking_id);
+                        setDetailsOpen(true);
+                      }}
+                    >
+                      <Eye className="h-3 w-3" />
+                      View
+                    </Button>
                   </td>
                 </tr>
               ))}
+
+              {!loading && filteredDeliveries.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="p-4 text-center text-sm"
+                    style={{ color: "var(--color-muted-foreground)" }}
+                  >
+                    No delivery records found for the current filters.
+                  </td>
+                </tr>
+              )}
+
+              {loading && (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="p-4 text-center text-sm"
+                    style={{ color: "var(--color-muted-foreground)" }}
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Footer with "Showing X–Y of Z" and pagination controls */}
+        <div className="flex items-center justify-between px-4 py-3 border-t"
+             style={{ borderColor: "var(--color-sidebar-border)", backgroundColor: "var(--color-card)" }}>
+          <div style={{ color: "var(--color-muted-foreground)" }} className="text-sm">
+            {filteredDeliveries.length === 0
+              ? `Showing 0–0 of 0`
+              : `Showing ${startIndex}–${endIndex} of ${filteredDeliveries.length}`}
+          </div>
+
+          {/* Pagination controls */}
+          <div className="flex items-center gap-2">
+            {/* First */}
+            <PagButton
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              ariaLabel="First page"
+            >
+              «
+            </PagButton>
+
+            {/* Prev */}
+            <PagButton
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              ariaLabel="Previous page"
+            >
+              &lt;
+            </PagButton>
+
+            {/* Page numbers (compact ellipsis) */}
+            {pageList.map((p, idx) => {
+              if (p === "left-ellipsis" || p === "right-ellipsis") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-2 text-sm" style={{ color: "var(--color-muted-foreground)" }}>
+                    …
+                  </span>
+                );
+              }
+              const pageNum = p;
+              const active = pageNum === currentPage;
+              return (
+                <PagButton
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  active={active}
+                  ariaLabel={`Page ${pageNum}`}
+                >
+                  {pageNum}
+                </PagButton>
+              );
+            })}
+
+            {/* Next */}
+            <PagButton
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              ariaLabel="Next page"
+            >
+              &gt;
+            </PagButton>
+
+            {/* Last */}
+            <PagButton
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              ariaLabel="Last page"
+            >
+              »
+            </PagButton>
+          </div>
+        </div>
       </div>
     </div>
+    <ViewBookingDetails
+      open={detailsOpen}
+      onOpenChange={setDetailsOpen}
+      bookingId={selectedBookingId}
+      axios={axios}
+      API_BASE_URL={API_BASE_URL}
+      toast={{
+        error: (msg) => console.error("VIEW ERROR:", msg),
+      }}
+    />
+    </>
   );
 };
 
