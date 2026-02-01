@@ -28,6 +28,10 @@ export default function BookingDetailModal({
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState(null);
+
+
   // =====================================================
   // FETCH BOOKING + ASSIGNMENT DETAILS
   // =====================================================
@@ -65,6 +69,9 @@ export default function BookingDetailModal({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
+          <DialogHeader>
+            <DialogTitle></DialogTitle>
+          </DialogHeader>
           <div className="p-6">Loading…</div>
         </DialogContent>
       </Dialog>
@@ -99,220 +106,261 @@ export default function BookingDetailModal({
     selectedStatus
   );
 
-  const hasProof = docs.length > 0;
+
+  //const hasProof = docs.length > 0;
+  const proofName = selectedStatus + " - proof of delivery";
+  //const hasProof = docs.document_type === proofName;
+  const hasProof = docs.some(doc => doc.document_type === proofName);
 
   // =====================================================
   // HANDLE STATUS CHANGE
   // =====================================================
-  const handleRequestStatusChange = async (newStatus) => {
-    const confirmUpdate = window.confirm(
-      `Change status to "${newStatus}"? This action cannot be undone.`
-    );
-    if (!confirmUpdate) return;
+  const handleRequestStatusChange = (newStatus) => {
+    setPendingStatus(newStatus);
+    setConfirmOpen(true);
+  };
 
-    // ✅ FIX 6: Only require proof for non-initial status changes
+  const handleConfirmStatusChange = async () => {
+    setConfirmOpen(false);
+
+    // Validation checks
     if (selectedStatus !== "Pending" && !hasProof) {
       toast.warning("Please upload proof before updating status.");
       return;
     }
 
-    if (newStatus === "Completed" && !hasProof) {
+    if (pendingStatus === "Completed" && !hasProof) {
       toast.warning("Please upload proof before completing delivery.");
       return;
     }
 
     try {
-      await onStatusChange(newStatus);
+      // Call the parent's onStatusChange with correct parameters
+      await onStatusChange(pendingStatus); // ✅ Correct - passing 1 arg
+      
+      // Refresh the data
       await fetchData();
-      setSelectedStatus(newStatus);
+      
+      // Update local state
+      setSelectedStatus(pendingStatus);
+      
+      //toast.success("Status updated successfully!");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update status");
     }
   };
 
+
+  console.log(data)
+
   // =====================================================
   // RENDER DIALOG
   // =====================================================
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Assignment #{assignment.assignment_id}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {booking.dr_number || booking.partner_name || "No DR number"}
-          </p>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              Assignment #{assignment.assignment_id}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {booking.dr_number || booking.partner_name || "No DR number"}
+            </p>
+          </DialogHeader>
 
-        <Tabs defaultValue="details" className="mt-4">
-          <TabsList className={`grid w-full ${!isFinalStatus ? `grid-cols-3` : `grid-cols-2`}`}>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
-            {!isFinalStatus && <TabsTrigger value="proof">Proof</TabsTrigger>}
-          </TabsList>
+          <Tabs defaultValue="details" className="mt-4">
+            <TabsList className={`grid w-full ${!isFinalStatus ? `grid-cols-3` : `grid-cols-2`}`}>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="progress">Progress</TabsTrigger>
+              {!isFinalStatus && <TabsTrigger value="proof">Proof</TabsTrigger>}
+            </TabsList>
 
-          {/* DETAILS TAB */}
-          <TabsContent value="details" className="space-y-4 mt-4">
-            {/* Card */}
-            <Card className="shadow-sm border rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                  <Package className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                  Booking Details
-                </CardTitle>
-              </CardHeader>
+            {/* DETAILS TAB */}
+            <TabsContent value="details" className="space-y-4 mt-4">
+              {/* Card */}
+              <Card className="shadow-sm border rounded-xl">
+                <CardHeader>
+                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                    <Package className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                    Booking Details
+                  </CardTitle>
+                </CardHeader>
 
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                  {/* ORIGIN */}
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Origin</p>
-                      <p className="font-medium text-sm md:text-base">{booking.route_from}</p>
+                    {/* ORIGIN */}
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Origin</p>
+                        <p className="font-medium text-sm md:text-base">{booking.route_from}</p>
+                      </div>
                     </div>
+
+                    {/* DESTINATION */}
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Destination</p>
+                        <p className="font-medium text-sm md:text-base">{booking.route_to}</p>
+                      </div>
+                    </div>
+
+                    {/* CARGO */}
+                    <div className="flex items-start gap-3">
+                      <Package className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Cargo</p>
+                        <p className="font-medium text-sm md:text-base">{booking.category || "N/A"}</p>
+                      </div>
+                    </div>
+
+                    {/* WEIGHT */}
+                    <div className="flex items-start gap-3">
+                      <Package className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Weight</p>
+                        <p className="font-medium text-sm md:text-base">{booking.estimated_weight} kg</p>
+                      </div>
+                    </div>
+
+                    {/* TRUCK */}
+                    <div className="flex items-start gap-3">
+                      <Truck className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Truck</p>
+                        <p className="font-medium text-sm md:text-base">{data.truck?.plate_number}</p>
+                      </div>
+                    </div>
+
+                    {/* SCHEDULE */}
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Scheduled</p>
+                        <p className="font-medium text-sm md:text-base">
+                          {booking.scheduled_start
+                            ? new Date(booking.scheduled_start).toLocaleString()
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+
                   </div>
 
-                  {/* DESTINATION */}
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Destination</p>
-                      <p className="font-medium text-sm md:text-base">{booking.route_to}</p>
-                    </div>
-                  </div>
-
-                  {/* CARGO */}
-                  <div className="flex items-start gap-3">
-                    <Package className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Cargo</p>
-                      <p className="font-medium text-sm md:text-base">{booking.category || "N/A"}</p>
-                    </div>
-                  </div>
-
-                  {/* WEIGHT */}
-                  <div className="flex items-start gap-3">
-                    <Package className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Weight</p>
-                      <p className="font-medium text-sm md:text-base">{booking.estimated_weight} kg</p>
-                    </div>
-                  </div>
-
-                  {/* TRUCK */}
-                  <div className="flex items-start gap-3">
-                    <Truck className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Truck</p>
-                      <p className="font-medium text-sm md:text-base">{data.truck?.plate_number}</p>
-                    </div>
-                  </div>
-
-                  {/* SCHEDULE */}
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Scheduled</p>
-                      <p className="font-medium text-sm md:text-base">
-                        {booking.scheduled_start
-                          ? new Date(booking.scheduled_start).toLocaleString()
-                          : "—"}
+                  {/* REMARKS */}
+                  {(assignment.remarks && assignment.remarks !== "") && (
+                    <div className="pt-4 mt-4 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Remarks/Notes</p>
+                      <p className="text-sm md:text-base bg-muted p-3 rounded">
+                        {assignment.remarks}
                       </p>
                     </div>
-                  </div>
+                  )}
 
-                </div>
+                  {/* HELPER */}
+                  {data.helper && (
+                    <div className="pt-4 mt-4 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Helper</p>
+                      <p className="font-medium text-sm md:text-base">
+                        {data.helper.full_name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                {/* REMARKS */}
-                {(assignment.remarks && assignment.remarks !== "") && (
-                  <div className="pt-4 mt-4 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">Remarks/Notes</p>
-                    <p className="text-sm md:text-base bg-muted p-3 rounded">
-                      {assignment.remarks}
-                    </p>
-                  </div>
+              
+              {/* STATUS ACTIONS */}
+              <div className="space-y-3">
+                {selectedStatus === "Pending" && (
+                  <Button
+                    className="w-full"
+                    onClick={() => handleRequestStatusChange(initialStep)}
+                  >
+                    Start Delivery
+                  </Button>
                 )}
 
-                {/* HELPER */}
-                {data.helper && (
-                  <div className="pt-4 mt-4 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">Helper</p>
-                    <p className="font-medium text-sm md:text-base">
-                      {data.helper.full_name}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            
-            {/* STATUS ACTIONS */}
-            <div className="space-y-3">
-              {selectedStatus === "Pending" && (
-                <Button
-                  className="w-full"
-                  onClick={() => handleRequestStatusChange(initialStep)}
-                >
-                  Start Delivery
-                </Button>
-              )}
-
-              {!isFinalStatus &&
-                selectedStatus !== "Pending" &&
-                nextStep && (
-                  <>
-                    <div>Update Status</div>
-                    <Button
-                      className="w-full"
-                      onClick={() => handleRequestStatusChange(nextStep)}
-                      disabled={!hasProof}
-                    >
-                      {nextStep}
-                    </Button>
-                    {!hasProof && (
-                      <div className="text-sm text-destructive">Please upload a proof of delivery to continue.</div>
-                    )}
-                  </>
-                  
-                )}
-            </div>
-          </TabsContent>
-
-          {/* PROGRESS TAB */}
-          <TabsContent value="progress" className="mt-4">
-            <DeliveryProgressTracker
-              currentStatus={selectedStatus}
-              initialStep={initialStep}
-            />
-          </TabsContent>
-
-          {/* PROOF TAB */}
-          {!isFinalStatus && (
-            <TabsContent value="proof" className="mt-4">
-              <ProofOfDeliveryUpload
-                assignmentId={assignment.assignment_id}
-                onUploaded={fetchData}
-              />
-
-              <div className="mt-4">
-                <p className="text-xs text-muted-foreground">Uploaded files</p>
-                <ul>
-                  {docs.length === 0 && <li className="text-sm">No files uploaded yet</li>}
-                  {docs.map((d) => (
-                    <li key={d.document_id} className="text-sm">
-                      {d.document_type} — {d.file_path.split('/').pop()}
-                    </li>
-                  ))}
-                </ul>
+                {!isFinalStatus &&
+                  selectedStatus !== "Pending" &&
+                  nextStep && (
+                    <>
+                      <div>Update Status</div>
+                      <Button
+                        className="w-full"
+                        onClick={() => handleRequestStatusChange(nextStep)}
+                        disabled={!hasProof}
+                      >
+                        {nextStep}
+                      </Button>
+                      {!hasProof && (
+                        <div className="text-sm text-destructive">Please upload a proof of delivery to continue.</div>
+                      )}
+                    </>
+                    
+                  )}
               </div>
             </TabsContent>
-          )}
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+
+            {/* PROGRESS TAB */}
+            <TabsContent value="progress" className="mt-4">
+              <DeliveryProgressTracker
+                currentStatus={selectedStatus}
+                initialStep={initialStep}
+              />
+            </TabsContent>
+
+            {/* PROOF TAB */}
+            {!isFinalStatus && (
+              <TabsContent value="proof" className="mt-4">
+                <ProofOfDeliveryUpload
+                  assignmentId={assignment.assignment_id}
+                  onUploaded={fetchData}
+                />
+
+                <div className="mt-4">
+                  <p className="text-xs text-muted-foreground">Uploaded files</p>
+                  <ul>
+                    {docs.length === 0 && <li className="text-sm">No files uploaded yet</li>}
+                    {docs.map((d) => (
+                      <li key={d.document_id} className="text-sm">
+                        {d.document_type} — {d.file_path.split('/').pop()}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRM STATUS UPDATE DIALOG */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirm Status Update</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground">
+            Change status to <span className="font-semibold">{pendingStatus}</span>? 
+            This action cannot be undone.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmStatusChange}>
+              Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -20,6 +20,8 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
+    // Use a correlated subquery to pull the latest status_logs.timestamp for this booking
+    // where the status matches the booking status. If none is found, fall back to b.scheduled_start.
     $sql = "
         SELECT 
             b.booking_id,
@@ -30,7 +32,17 @@ try {
             b.phone_number,
             b.route_from,
             b.route_to,
-            b.scheduled_start,
+
+            (
+                SELECT sl.timestamp
+                FROM status_logs sl
+                WHERE sl.booking_id = b.booking_id
+                AND sl.status = b.status
+                ORDER BY sl.timestamp DESC
+                LIMIT 1
+            ) AS log_ts,
+
+            b.scheduled_start AS booking_scheduled_start,
             b.deadline,
             b.status AS booking_status,
             b.service_rate,
@@ -43,13 +55,34 @@ try {
             t.plate_number,
             t.model AS truck_model,
 
-            e.full_name AS driver_name
+            e.full_name AS driver_name,
+
+            sd.amount AS soa_amount  -- 🔥 NEW: revenue from soa_detail
+
         FROM bookings b
         LEFT JOIN assignments a ON a.booking_id = b.booking_id
         LEFT JOIN trucks t ON a.truck_id = t.truck_id
         LEFT JOIN employees e ON a.driver_id = e.employee_id
-        ORDER BY b.scheduled_start DESC, b.booking_id DESC
+
+        LEFT JOIN (
+            SELECT booking_id, amount
+            FROM soa_detail
+            GROUP BY booking_id
+        ) sd ON sd.booking_id = b.booking_id
+
+        ORDER BY COALESCE(
+            (
+                SELECT sl.timestamp 
+                FROM status_logs sl 
+                WHERE sl.booking_id = b.booking_id 
+                AND sl.status = b.status 
+                ORDER BY sl.timestamp DESC 
+                LIMIT 1
+            ),
+            b.scheduled_start
+        ) DESC, b.booking_id DESC
     ";
+
 
     $result = $conn->query($sql);
 
@@ -59,6 +92,14 @@ try {
 
     $rows = [];
     while ($row = $result->fetch_assoc()) {
+        // If log_ts exists, use it as scheduled_start; otherwise use booking_scheduled_start
+        $scheduled_start_final = $row['log_ts'] ?? $row['booking_scheduled_start'];
+        // normalize key name so front-end can keep using 'scheduled_start'
+        $row['scheduled_start'] = $scheduled_start_final;
+        // optionally remove intermediate fields if you don't want to expose them
+        unset($row['log_ts']);
+        unset($row['booking_scheduled_start']);
+
         $rows[] = $row;
     }
 

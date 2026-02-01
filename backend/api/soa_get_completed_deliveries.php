@@ -28,23 +28,46 @@ if ($date_from === '' || $date_to === '') {
 
 try {
     $sql = "
-        SELECT 
-            a.assignment_id,
+        SELECT
             b.booking_id,
             b.dr_number,
             CONCAT(b.route_from, ' → ', b.route_to) AS route,
             t.plate_number,
-            DATE(a.assigned_date) AS delivery_date,
+
+            -- Completed delivery date from status_logs
+            (
+                SELECT DATE(sl.timestamp)
+                FROM status_logs sl
+                WHERE sl.booking_id = b.booking_id
+                  AND sl.status = 'Completed'
+                ORDER BY sl.timestamp DESC
+                LIMIT 1
+            ) AS delivery_date,
+
             COALESCE(b.service_rate, 0) AS default_amount
-        FROM assignments a
-        INNER JOIN bookings b ON a.booking_id = b.booking_id
-        INNER JOIN trucks t ON a.truck_id = t.truck_id
-        LEFT JOIN soa_detail sd ON sd.assignment_id = a.assignment_id
+
+        FROM bookings b
+        LEFT JOIN assignments a 
+               ON a.booking_id = b.booking_id 
+              AND a.current_status = 'Completed'
+        INNER JOIN trucks t 
+               ON a.truck_id = t.truck_id
+
+        -- Prevent bookings that already exist in SOA details
+        LEFT JOIN soa_detail sd 
+               ON sd.booking_id = b.booking_id
+
         WHERE b.service_type = ?
           AND b.status = 'Completed'
-          AND a.current_status = 'Completed'
-          AND sd.soa_detail_id IS NULL
-          AND DATE(a.assigned_date) BETWEEN ? AND ?
+          AND sd.soa_detail_id IS NULL       -- booking not yet billed
+          AND (
+                SELECT DATE(sl.timestamp)
+                FROM status_logs sl
+                WHERE sl.booking_id = b.booking_id
+                  AND sl.status = 'Completed'
+                ORDER BY sl.timestamp DESC
+                LIMIT 1
+              ) BETWEEN ? AND ?
     ";
 
     if ($service_type === 'Partnership') {
@@ -53,28 +76,26 @@ try {
         $sql .= " AND b.customer_name = ?";
     }
 
-    $sql .= " ORDER BY a.assigned_date ASC";
+    $sql .= " ORDER BY delivery_date ASC";
 
     $stmt = $conn->prepare($sql);
-
-    if ($service_type === 'Partnership') {
-        $stmt->bind_param('ssss', $service_type, $date_from, $date_to, $party_name);
-    } else {
-        $stmt->bind_param('ssss', $service_type, $date_from, $date_to, $party_name);
-    }
-
+    $stmt->bind_param('ssss', $service_type, $date_from, $date_to, $party_name);
     $stmt->execute();
-    $result = $stmt->get_result();
 
+    $res = $stmt->get_result();
     $rows = [];
-    while ($row = $result->fetch_assoc()) {
+
+    while ($row = $res->fetch_assoc()) {
         $rows[] = $row;
     }
 
     echo json_encode(['success' => true, 'data' => $rows]);
+
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error: ' . $e->getMessage()
+    ]);
 }
-
 ?>

@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { API_BASE_URL } from "@/config";
+import { toast } from "sonner";
 
 export function AddEmployeeDialog({ onClose }) {
   const [open, setOpen] = useState(false);
@@ -27,6 +28,8 @@ export function AddEmployeeDialog({ onClose }) {
     contact_number: "",
     status: "Idle",
     license_info: "",
+    driver_license: "",
+    driver_license_expiry_date: "",
     date_started: "",
     emergency_contact_name: "",
     emergency_contact_number: "",
@@ -43,7 +46,7 @@ export function AddEmployeeDialog({ onClose }) {
 
     if (files) {
       const file = files[0];
-      if (name === "nbi_clearance" || name === "police_clearance") {
+      if (name === "nbi_clearance" || name === "police_clearance" || name === "driver_license") {
         if (
           !["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png"].includes(file.type)
         ) {
@@ -80,7 +83,7 @@ export function AddEmployeeDialog({ onClose }) {
       const result = JSON.parse(responseText);
 
       if (response.ok) {
-        alert("Employee added successfully!");
+        toast.success("Employee added successfully!");
         setFormData({
             full_name: "",
             email: "",
@@ -88,6 +91,8 @@ export function AddEmployeeDialog({ onClose }) {
             contact_number: "",
             status: "Idle",
             license_info: "",
+            driver_license: "",
+            driver_license_expiry_date: "",
             date_started: "",
             emergency_contact_name: "",
             emergency_contact_number: "",
@@ -100,15 +105,17 @@ export function AddEmployeeDialog({ onClose }) {
         setOpen(false);
         if (onClose) onClose();
       } else {
-        alert(`Error: ${result.error}`);
+        toast.error(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while adding the employee.");
+      toast.error("An error occurred while adding the employee.");
     } finally {
       setLoading(false);
     }
   };
+
+  const isDriver = formData.position === "Driver";
 
   const isFormValid =
     formData.full_name &&
@@ -122,7 +129,14 @@ export function AddEmployeeDialog({ onClose }) {
     formData.nbi_clearance &&
     formData.nbi_expiry_date &&
     formData.police_clearance &&
-    formData.police_expiry_date;
+    formData.police_expiry_date &&
+    (
+        !isDriver ||
+        (
+            formData.driver_license &&
+            formData.driver_license_expiry_date
+        )
+    );
 
   return (
     <Dialog open={open} onOpenChange={setOpen} className="rounded-xl">
@@ -149,7 +163,10 @@ export function AddEmployeeDialog({ onClose }) {
                             name="full_name"
                             placeholder="Juan Dela Cruz"
                             value={formData.full_name}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, "");
+                                setFormData({ ...formData, full_name: value });
+                            }}
                             required
                         />
                     </div>
@@ -209,20 +226,42 @@ export function AddEmployeeDialog({ onClose }) {
                             name="contact_number"
                             placeholder="09123456789"
                             value={formData.contact_number}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9+\-\s()]/g, "");
+                                setFormData({ ...formData, contact_number: value });
+                            }}
                             required
                         />
                     </div>
                     {formData.position === "Driver" && (
-                        <div className="col-span-2">
-                            <label className="text-sm font-medium">License Info</label>
-                            <Input
-                            name="license_info"
-                            placeholder="License No. D123456"
-                            value={formData.license_info}
-                            onChange={handleChange}
-                            />
-                        </div>
+                        <>
+                            <div className="col-span-2">
+                                <label className="text-sm font-medium">Driver's License No.</label>
+                                <Input
+                                name="license_info"
+                                placeholder="License No. D123456"
+                                value={formData.license_info}
+                                onChange={handleChange}
+                                />
+                            </div>
+                            <div className="border rounded-lg p-4 col-span-2">
+                                <label className="text-sm font-medium block mb-2">Driver's License</label>
+                                <Input
+                                    type="file"
+                                    name="driver_license"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    onChange={handleChange}
+                                    className="w-full text-sm border p-3 rounded-lg"
+                                />
+                                <label className="text-sm font-medium block mt-3 mb-2">Driver's License Expiry Date</label>
+                                <Input
+                                    type="date"
+                                    name="driver_license_expiry_date"
+                                    value={formData.driver_license_expiry_date}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </>
                     )}
                     <div className="col-span-2">
                         <label className="text-sm font-medium">Emergency Contact Name</label>
@@ -230,7 +269,10 @@ export function AddEmployeeDialog({ onClose }) {
                             name="emergency_contact_name"
                             placeholder="Maria Dela Cruz"
                             value={formData.emergency_contact_name}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, "");
+                                setFormData({ ...formData, emergency_contact_name: value });
+                            }}
                             required
                         />
                     </div>
@@ -240,7 +282,10 @@ export function AddEmployeeDialog({ onClose }) {
                             name="emergency_contact_number"
                             placeholder="09123456789"
                             value={formData.emergency_contact_number}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9+\-\s()]/g, "");
+                                setFormData({ ...formData, emergency_contact_number: value });
+                            }}
                             required
                         />
                     </div>

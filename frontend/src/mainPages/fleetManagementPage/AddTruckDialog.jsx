@@ -11,11 +11,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ChevronRight, ChevronLeft } from "lucide-react";
 import { API_BASE_URL } from "@/config";
+import { toast } from "sonner"
 
 export default function AddTruckDialog({ onClose }) {
+
+  const CURRENT_YEAR = new Date().getFullYear();
+  const MIN_CAPACITY_KG = 100;
+  const MAX_CAPACITY_KG = 50000;
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -24,11 +29,11 @@ export default function AddTruckDialog({ onClose }) {
     model: "",
     capacity: "",
     year: "",
-    status: "Okay to Use",
     or_document: null,
     or_expiry_date: "",
     cr_document: null,
     cr_expiry_date: "",
+    status: "",
     image: null,
     remarks: "",
   });
@@ -84,6 +89,39 @@ export default function AddTruckDialog({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const currentYear = new Date().getFullYear();
+    const capacity = Number(formData.capacity);
+
+    if (!Number.isInteger(Number(formData.year))) {
+      toast.error("Year model must be a valid number.");
+      return;
+    }
+
+    if (formData.year.length < 4) {
+      toast.error("Year must be 4 digits.");
+      return;
+    }
+
+    if (formData.year > currentYear) {
+      toast.error(`Year model cannot be later than ${currentYear}.`);
+      return;
+    }
+
+    if (formData.year < 1900) {
+      toast.error("Year model is too old to be valid.");
+      return;
+    }
+
+    if (!Number.isFinite(capacity) || capacity < 100) {
+      toast.error("Truck capacity must be at least 100 kg.");
+      return;
+    }
+
+    if (capacity > 50000) {
+      toast.error("Truck capacity is unrealistically high.");
+      return;
+    }
+
     const data = new FormData();
     for (const key in formData) {
       data.append(key, formData[key]);
@@ -104,7 +142,6 @@ export default function AddTruckDialog({ onClose }) {
           model: "",
           capacity: "",
           year: "",
-          status: "Okay to Use",
           or_document: null,
           or_expiry_date: "",
           cr_document: null,
@@ -156,9 +193,16 @@ export default function AddTruckDialog({ onClose }) {
                 <label className="text-sm font-medium">Plate Number</label>
                 <Input
                   name="plate_number"
-                  placeholder="ABC-1234"
+                  placeholder="ABC 1234"
+                  maxLength={8}
                   value={formData.plate_number}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9 ]/g, "")
+                      .replace(/\s+/g, " ");
+                    setFormData({...formData, plate_number: value});
+                  }}
                   required
                 />
               </div>
@@ -180,6 +224,9 @@ export default function AddTruckDialog({ onClose }) {
                   name="capacity"
                   type="number"
                   placeholder="5000"
+                  min="100"
+                  max="50000"
+                  step="1"
                   value={formData.capacity}
                   onChange={handleChange}
                   required
@@ -192,6 +239,8 @@ export default function AddTruckDialog({ onClose }) {
                   name="year"
                   type="number"
                   placeholder="2024"
+                  min="1900"
+                  max={CURRENT_YEAR}
                   value={formData.year}
                   onChange={handleChange}
                   required
@@ -199,24 +248,6 @@ export default function AddTruckDialog({ onClose }) {
               </div>
 
               <div className="flex justify-between max-w gap-6 flex-col sm:flex-row">
-                <div>
-                    <label className="text-sm font-medium">Status</label>
-                    <Select className="gap-2"
-                    value={formData.status}
-                    onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, status: value }))
-                    }
-                    >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Okay to Use">Okay to Use</SelectItem>
-                        <SelectItem value="Not Okay to Use">Not Okay to Use</SelectItem>
-                    </SelectContent>
-                    </Select>
-                </div>
-
                 <div>
                     <label className="text-sm font-medium">Image (optional)</label>
                     <Input

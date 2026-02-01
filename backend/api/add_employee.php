@@ -31,6 +31,7 @@ $position = $_POST['position'] ?? '';
 $contact_number = $_POST['contact_number'] ?? '';
 $status = $_POST['status'] ?? 'Idle';
 $license_info = $_POST['license_info'] ?? '';
+$driver_license_expiry_date = $_POST['driver_license_expiry_date'] ?? '';
 $date_started = $_POST['date_started'] ?? '';
 $emergency_contact_name = $_POST['emergency_contact_name'] ?? '';
 $emergency_contact_number = $_POST['emergency_contact_number'] ?? '';
@@ -44,6 +45,21 @@ if (empty($full_name) || empty($email) || empty($position) || empty($contact_num
     echo json_encode(['error' => 'Missing required fields']);
     exit;
 }
+
+// Check for duplicate email
+$stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows > 0) {
+    http_response_code(409);
+    echo json_encode(['error' => 'Email already exists']);
+    $stmt->close();
+    exit;
+}
+
+$stmt->close();
 
 // Calculate years on team
 $date_started_obj = new DateTime($date_started);
@@ -79,28 +95,70 @@ try {
     }
 
     function handle_employee_document_upload($file_key, $employee_id, $doc_type, $expiry_date, $conn, $upload_dir) {
-        if (isset($_FILES[$file_key]) && $_FILES[$file_key]['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES[$file_key];
-            $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $original_filename = pathinfo($file['name'], PATHINFO_FILENAME);
-            $unique_filename = uniqid($original_filename . '_', true) . '.' . $file_extension;
-            $file_path = $upload_dir . $unique_filename;
 
-            if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                if (!$expiry_date) {
-                    throw new Exception("Expiry date is required for {$doc_type} document");
-                }
-
-                $stmt = $conn->prepare("INSERT INTO employee_documents (employee_id, document_type, file_path, expiry_date) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("isss", $employee_id, $doc_type, $file_path, $expiry_date);
-                $stmt->execute();
-                $stmt->close();
-            } else {
-                throw new Exception("Failed to move uploaded file for {$doc_type}");
-            }
+        // File key does not exist or no file uploaded skip
+        if (!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] === UPLOAD_ERR_NO_FILE) {
+            return;
         }
+
+        // Any other upload error
+        if ($_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception("Upload error for {$doc_type}");
+        }
+
+        if (empty($expiry_date)) {
+            throw new Exception("Expiry date is required for {$doc_type} document");
+        }
+
+        $file = $_FILES[$file_key];
+
+        /* File Type Validation */
+
+        // Allowed MIME types
+        $allowed_mime_types = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/png'
+        ];
+
+        // Allowed extensions
+        $allowed_extensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+
+        // Detect real MIME type using PHP
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $detected_mime = $finfo->file($file['tmp_name']);
+
+        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($detected_mime, $allowed_mime_types, true) || !in_array($file_extension, $allowed_extensions, true)) {
+            throw new Exception("Invalid file type for {$doc_type}");
+        }
+
+        /* File Type Validation */
+
+
+        $original_filename = pathinfo($file['name'], PATHINFO_FILENAME);
+        $unique_filename = uniqid($original_filename . '_', true) . '.' . $file_extension;
+        $file_path = $upload_dir . $unique_filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $file_path)) {
+            throw new Exception("Failed to move uploaded file for {$doc_type}");
+        }
+
+        $stmt = $conn->prepare("
+            INSERT INTO employee_documents (employee_id, document_type, file_path, expiry_date)
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt->bind_param("isss", $employee_id, $doc_type, $file_path, $expiry_date);
+        $stmt->execute();
+        $stmt->close();
     }
 
+    if ($position === 'Driver') {
+        handle_employee_document_upload('driver_license', $employee_id, 'Driver\'s License', $driver_license_expiry_date, $conn, $doc_upload_dir);
+    }
     handle_employee_document_upload('nbi_clearance', $employee_id, 'NBI Clearance', $nbi_expiry_date, $conn, $doc_upload_dir);
     handle_employee_document_upload('police_clearance', $employee_id, 'Police Clearance', $police_expiry_date, $conn, $doc_upload_dir);
 

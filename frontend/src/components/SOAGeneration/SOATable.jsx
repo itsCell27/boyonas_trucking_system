@@ -1,29 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Eye, Download, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { API_BASE_URL } from "@/config";
-import { toast } from "sonner";
+import { Eye, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import SOAPreview from "./SOAPreview";
 
-function SOATable({ onPreview }) {
-  const [records, setRecords] = useState([]);
+function SOATable({ records: initialRecords, onUpdated }) {
+  const [records, setRecords] = useState(initialRecords || []);
 
-  const fetchRecords = async () => {
-    try {
-      const resp = await axios.get(`${API_BASE_URL}/get_soa_list.php`);
-      if (resp.data.success) {
-        setRecords(resp.data.records);
-      } else {
-        toast.error(resp.data.message);
-      }
-    } catch {
-      toast.error("Failed to load SOA list.");
-    }
-  };
+  const [previewData, setPreviewData] = useState(null);
+  const [openPreview, setOpenPreview] = useState(false);
 
   useEffect(() => {
-    fetchRecords();
-  }, []);
+    setRecords(initialRecords || []);
+  }, [initialRecords]);
+
+  const handlePreview = async (soa_id) => {
+    try {
+      const resp = await axios.get(`${API_BASE_URL}/get_soa_preview.php`, {
+        params: { soa_id }
+      });
+
+      if (!resp.data.success) return toast.error(resp.data.message);
+
+      setPreviewData(resp.data);
+      setOpenPreview(true);
+    } catch (err) {
+      toast.error("Failed to load preview.");
+    }
+  };
 
   const statusClass = (status) => {
     if (status === "Paid") return "bg-green-100 text-green-800";
@@ -32,61 +37,154 @@ function SOATable({ onPreview }) {
     return "bg-gray-100 text-gray-800";
   };
 
+  const updateStatus = async (soa_id, targetStatus) => {
+    const confirmAction = window.confirm(
+      `Are you sure you want to mark this SOA as "${targetStatus}"?`
+    );
+    if (!confirmAction) return;
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/update_soa_status.php`,
+        {
+          soa_id,
+          status: targetStatus,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      const data = response.data;
+
+      if (!data.success) {
+        alert(data.message || "Failed to update SOA status.");
+        return;
+      }
+
+      // Update UI instantly
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.soa_id === soa_id ? { ...r, status: targetStatus } : r
+        )
+      );
+
+      if (onUpdated) onUpdated(soa_id, targetStatus);
+    } catch (error) {
+      console.error(error);
+      alert("Server error while updating SOA status.");
+    }
+  };
+
+  const handleDownload = async (soa_id) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/generate_soa_pdf.php`,
+        {
+          params: { soa_id },
+          responseType: "blob", // PDF file
+          withCredentials: true,
+        }
+      );
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `SOA_${soa_id}.pdf`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Failed to download PDF.");
+    }
+  };
+
+
   return (
-    <div className="bg-card border p-6 rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Statement of Account Records</h2>
+    <>
+      <div className="bg-card border p-6 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Statement of Account Records</h2>
 
-      <div className="space-y-4">
-        {records.map((record) => (
-          <div key={record.soa_id} className="bg-background border rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold">SOA-{record.soa_id}</div>
-                <div className="text-sm text-muted-foreground">{record.service_type}</div>
-              </div>
-
-              <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${statusClass(record.status)}`}>
-                {record.status}
-              </span>
+        <div className="space-y-4">
+          {records.length === 0 ? (
+            <div className="text-center text-muted-foreground py-10 border rounded-lg bg-background">
+              No Statement of Account records found.
             </div>
+          ) : (
+            records.map((record) => (
+              <div key={record.soa_id} className="bg-background border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold">{record.soa_number}</div>
+                    <div className="text-sm text-muted-foreground">{record.service_type}</div>
+                  </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <div className="text-muted-foreground">Period</div>
-                <div>{record.date_from} → {record.date_to}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Amount</div>
-                <div className="font-medium text-lg">₱{Number(record.total_amount).toLocaleString()}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Generated</div>
-                <div>{record.date_generated}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">By</div>
-                <div>{record.generated_by}</div>
-              </div>
-            </div>
+                  <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${statusClass(record.status)}`}>
+                    {record.status}
+                  </span>
+                </div>
 
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-muted-foreground">
-              <div className="text-sm"></div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => onPreview(record.soa_id)}>
-                  <Eye size={14} /> Preview
-                </Button>
-                <Button variant="outline">
-                  <Download size={14} /> Download
-                </Button>
-                <Button>
-                  <Send size={14} /> Send
-                </Button>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">
+                      {record.service_type === "LipatBahay" ? "Customer" : "Partner"}
+                    </div>
+                    <div>{record.party_name}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-muted-foreground">Period</div>
+                    <div>{record.date_from} → {record.date_to}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-muted-foreground">Generated By</div>
+                    <div>{record.generated_by}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-muted-foreground">Total Amount</div>
+                    <div className="font-medium text-lg">
+                      ₱{Number(record.total_amount).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-muted-foreground">
+                  <div className="text-sm">
+                    <div className="text-muted-foreground">Generated</div>
+                    <div>{record.date_generated}</div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => handlePreview(record.soa_id)}>
+                      <Eye size={14} /> Preview
+                    </Button>
+
+                    <Button variant="outline" onClick={() => handleDownload(record.soa_id)}>
+                      <Download size={14} /> Download
+                    </Button>
+
+                    {record.status !== "Paid" ? (
+                      <Button onClick={() => updateStatus(record.soa_id, "Paid")}>
+                        Mark as Paid
+                      </Button>
+                    ) : (
+                      <Button onClick={() => updateStatus(record.soa_id, "Not Yet Paid")}>
+                        Revert to Not Yet Paid
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))
+          )}
+        </div>
       </div>
-    </div>
+      <SOAPreview open={openPreview} onOpenChange={setOpenPreview} data={previewData} />
+    </>
   );
 }
 

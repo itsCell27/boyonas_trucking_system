@@ -108,6 +108,16 @@ export default function CreateLipatBahayBooking() {
       return;
     }
 
+    if (formData.dr_number.includes("DEL")) {
+      toast.error("DR Number cannot contain 'DEL'");
+      return;
+    }
+
+    if (!formData.dr_number.startsWith("LB-")) {
+      toast.error("DR Number must start with 'LB-'");
+      return;
+    }
+
     const start = new Date(formData.scheduled_start);
     const deadline = new Date(formData.deadline);
     const now = new Date();
@@ -189,7 +199,10 @@ export default function CreateLipatBahayBooking() {
                   name="customer_name"
                   placeholder="e.g., Juan Dela Cruz"
                   value={formData.customer_name}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                      const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, "");
+                      setFormData({ ...formData, customer_name: value });
+                  }}
                 />
               </div>
 
@@ -199,7 +212,10 @@ export default function CreateLipatBahayBooking() {
                   name="phone_number"
                   placeholder="e.g., 09123456789"
                   value={formData.phone_number}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9+\-\s()]/g, "");
+                      setFormData({ ...formData, phone_number: value });
+                  }}
                 />
               </div>
 

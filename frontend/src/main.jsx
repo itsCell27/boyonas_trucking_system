@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Test from '@/Test'
 import ForgotPassword from '@/pages/ForgotPassword.jsx';
 import ResetPassword from '@/pages/ResetPassword.jsx';
+import ConfirmEmailChange from '@/pages/ConfirmEmailChange.jsx';
 import { ThemeContextProvider } from '@/context/ThemeContext'
 import { AuthProvider } from '@/context/AuthContext.jsx';
 import AdminRoute from '@/components/AdminRoute.jsx';
@@ -21,11 +22,14 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* PUBLIC ROUTES */}
             <Route path="/reset_password" element={<ResetPassword />} />
             <Route path="/forgot_password" element={<ForgotPassword />} />
             <Route path="/test" element={<Test />} />
+            <Route path="/confirm_email_change" element={<ConfirmEmailChange />} />
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<Login />} />
+
             {/* ADMIN-ONLY ROUTES */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AdminRoute />}>

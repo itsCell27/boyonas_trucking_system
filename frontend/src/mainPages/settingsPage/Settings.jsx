@@ -1,18 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useTheme } from '@/context/ThemeContext'
-import '../../index.css';
+import '@/index.css';
+import { CircleUserRound, LogOut } from 'lucide-react';
+import { Separator } from "@/components/ui/separator"
+import axios from "axios";
+import { API_BASE_URL } from "@/config";
+import { toast } from "sonner";
+import ChangeNameDialog from './ChangeNameDialog';
+import ChangeEmailDialog from './ChangeEmailDialog';
 
 function Settings() {
   const { theme, toggleTheme, colorTheme, setColorTheme } = useTheme();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  const [openChangeNameDialog, setOpenChangeNameDialog] = useState(false);
+  const [openChangeEmailDialog, setOpenChangeEmailDialog] = useState(false);
+  const [openChangePasswordDialog, setOpenChangePasswordDialog] = useState(false);
+
+  const fetchUserData = () => {
+    axios 
+      .get(`${API_BASE_URL}/current_user.php`, { withCredentials: true })
+      .then((res) => {
+        if (res.data.success) {
+          setUser(res.data.user);
+        } else {
+          toast.error("Failed to fetch user data.", res.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        toast.error("An error occurred while fetching user data.", error.message);
+      });
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
-    if (window.confirm("Are you sure you want to logout?")) {
       try {
         const response = await fetch('http://localhost/react_trucking_system/backend/api/logout.php', {
           method: 'POST',
+          withCredentials: true,
         });
         const data = await response.json();
         if (data.success) {
@@ -24,7 +76,6 @@ function Settings() {
       } catch (error) {
         console.error('An error occurred during logout:', error);
       }
-    }
   };
 
   return (
@@ -144,55 +195,102 @@ function Settings() {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end pt-6">
-          {/* <button
-            data-slot="button"
-            className="justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 flex items-center gap-2 bg-transparent"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-rotate-ccw h-4 w-4"
-            >
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-              <path d="M3 3v5h5"></path>
-            </svg>
-            Reset to Defaults
-          </button> */}
 
-           <button
-            data-slot="button"
-            className="justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-red-500 text-white shadow-xs hover:bg-red-600 h-9 px-4 py-2 has-[>svg]:px-3 flex items-center gap-2"
-            onClick={handleLogout}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-log-out h-4 w-4"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" x2="9" y1="12" y2="12"></line>
-            </svg>
-            Logout
-          </button>
-
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><CircleUserRound />Account</CardTitle>
+            <CardDescription>Manage your profile and account details</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex flex-col gap-4'>
+              <div className='flex justify-between items-center'>
+                <div className="space-y-1 mr-5">
+                  <label
+                    data-slot="label"
+                    className="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium"
+                  >
+                    {user ? user.name : 'N/a'}
+                  </label>
+                  <p className="text-sm text-muted-foreground text-wrap">
+                    Name
+                  </p>
+                </div>
+                <Button variant="outline" onClick={() => setOpenChangeNameDialog(true)}>Change</Button>
+              </div>
+              <Separator />
+              <div className='flex justify-between items-center'>
+                <div className="space-y-1 mr-5">
+                  <label
+                    data-slot="label"
+                    className="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium"
+                  >
+                    Change Email
+                  </label>
+                  <p className="text-sm text-muted-foreground text-wrap">
+                    Your email address is {user ? user.email : 'N/a'}
+                  </p>
+                </div>
+                <Button variant="outline" onClick={() => setOpenChangeEmailDialog(true)}>Change</Button>
+              </div>
+              <Separator />
+              <div className='flex justify-between items-center'>
+                <div className="space-y-1 mr-5">
+                  <label
+                    data-slot="label"
+                    className="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium"
+                  >
+                    Change Password
+                  </label>
+                  <p className="text-sm text-muted-foreground text-wrap">
+                    Update your account password 
+                  </p>
+                </div>
+                <Button variant="outline">Change</Button>
+              </div>
+              <Separator />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between items-center">
+            <div className="space-y-1 mr-5">
+              <label
+                data-slot="label"
+                className="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium"
+              >
+                Logout
+              </label>
+              <p className="text-sm text-muted-foreground text-wrap">
+                Sign out of your account
+              </p>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3">
+               
+                  <LogOut/> Logout
+              
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogout}>Yes</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardFooter>
+        </Card>
       </div>
+      <ChangeNameDialog
+        openNameDialog={openChangeNameDialog}
+        setOpenNameDialog={setOpenChangeNameDialog}
+        onSuccess={fetchUserData}
+      />
+      <ChangeEmailDialog
+        openEmailDialog={openChangeEmailDialog}
+        setOpenEmailDialog={setOpenChangeEmailDialog}
+        onSuccess={fetchUserData}
+      />
     </div>
   );
 }

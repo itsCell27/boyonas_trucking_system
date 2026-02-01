@@ -53,7 +53,7 @@ export default function Login() {
           const roleId = user.role_id ?? null;
 
           if (roleName === "admin" || roleId === 1) {
-            toast.success("Welcome back.");
+            toast.success("Welcome.");
             navigate("/app/dashboard", { replace: true });
           } else if (roleName === "driver" || roleId === 2) {
             toast.success("Welcome driver.");

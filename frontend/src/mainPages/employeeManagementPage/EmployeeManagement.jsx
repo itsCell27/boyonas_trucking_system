@@ -67,7 +67,12 @@ function EmployeeManagement() {
             const response = await axios.get(`${API_BASE_URL}/fetch_employees.php`,
                 { withCredentials: true }
             );
-            setEmployees(response.data);
+
+            const activeEmployees = response.data.filter(
+                (emp) => emp.employment_status === "Active"
+            );
+
+            setEmployees(activeEmployees);
             console.log('Fetched employees:', response.data);
         } catch (error) {
             console.error('Error fetching employees:', error);
@@ -77,25 +82,25 @@ function EmployeeManagement() {
     }
 
     useEffect(() => {
-            fetchEmployees();
-        }, []);
+        fetchEmployees();
+    }, []);
 
-        const updateEmployeeStatus = async (employeeId, newStatus) => {
-    try {
-        const response = await axios.post(
-        `${API_BASE_URL}/update_employee_status.php`,
-        { employee_id: employeeId, status: newStatus },
-        { withCredentials: true }
-        );
+    const updateEmployeeStatus = async (employeeId, newStatus) => {
+        try {
+            const response = await axios.post(
+            `${API_BASE_URL}/update_employee_status.php`,
+            { employee_id: employeeId, status: newStatus },
+            { withCredentials: true }
+            );
 
-        if (response.data.success) {
-        await fetchEmployees(); // refresh
-        } else {
-        console.error("Failed to update:", response.data);
+            if (response.data.success) {
+            await fetchEmployees(); // refresh
+            } else {
+            console.error("Failed to update:", response.data);
+            }
+        } catch (error) {
+            console.error("Update error:", error);
         }
-    } catch (error) {
-        console.error("Update error:", error);
-    }
     };
 
 
@@ -400,17 +405,17 @@ function EmployeeManagement() {
                                                         {/* Check if the employee is a driver */}
                                                         {isDriver(employee.position) && (
                                                             <div className="text-sm">
-                                                                <div className="font-medium">License</div>
+                                                                <div className="font-medium">License No.</div>
                                                                 <div className="text-muted-foreground">
                                                                     {employee.license_info}
-                                                                    <br/>
+                                                                    {/* <br/>
                                                                     Expires: 
-                                                                    <br/>
-                                                                    {employee.license_expiration ? (
+                                                                    <br/> */}
+                                                                    {/* {employee.license_expiration ? (
                                                                         <span> {employee.license_expiration}</span>
                                                                     ) : (
                                                                         <span> No expiration date provided</span>
-                                                                    )}
+                                                                    )} */}
                                                                 </div>
                                                             </div>
                                                         )}

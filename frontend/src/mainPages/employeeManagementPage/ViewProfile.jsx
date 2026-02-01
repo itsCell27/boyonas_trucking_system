@@ -8,11 +8,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { Card, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Phone, Mail, FileText, Download, Eye } from "lucide-react";
 import { API_BASE_URL } from "@/config";
 import { DocumentPreview } from "@/components/DocumentPreview"; 
+import { toast } from "sonner";
 
 
 function ViewProfile({ employee }) {
@@ -47,6 +60,46 @@ function ViewProfile({ employee }) {
     setPreviewOpen(true);
   };
 
+  const [resigning, setResigning] = useState(false);
+  const [confirmOpenResignedDialog, setConfirmOpenResignedDialog] = useState(false);
+
+  const handleMarkAsResigned = async () => {
+    if (!employeeDetails) return;
+
+    try {
+      setResigning(true);
+
+      const res = await axios.patch(
+        `${API_BASE_URL}/update_employment_status.php`,
+        {
+          employee_id: employeeDetails.employee_id,
+          user_id: employeeDetails.user_id,
+          employment_status: "Resigned",
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.success) {
+        // Update UI immediately (no refetch needed)
+        setEmployeeDetails((prev) => ({
+          ...prev,
+          employment_status: "Resigned",
+          status: "Idle",
+          date_ended: new Date().toISOString().split("T")[0],
+        }));
+        toast.success("Employee marked as resigned.");
+
+        setConfirmOpenResignedDialog(false);
+      } else {
+        toast.error(res.data?.message || "Failed to update employee status.");
+      }
+    } catch (err) {
+      console.error("Resign error:", err);
+      toast.error("Failed to mark employee as resigned.");
+    } finally {
+      setResigning(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -87,7 +140,7 @@ function ViewProfile({ employee }) {
 
         <div className="space-y-6">
           {/* Header Section */}
-          <div className="flex items-start justify-between pb-4 border-b">
+          <div className="flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold">{e.full_name}</h2>
               <p className="text-muted-foreground">{e.employee_code}</p>
@@ -177,12 +230,14 @@ function ViewProfile({ employee }) {
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-muted-foreground">License No.</label>
-                  <p>{e.license_info}</p>
                 </div>
                 <div>
+                  <p>{e.license_info}</p>
+                </div>
+                {/* <div>
                   <label className="text-sm text-muted-foreground">Expiry</label>
                   <p>{e.license_expiration || "N/A"}</p>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           )}
@@ -192,9 +247,13 @@ function ViewProfile({ employee }) {
             <CardHeader>
               <h3 className="text-lg font-semibold">Emergency Contact</h3>
             </CardHeader>
-            <CardContent>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-muted-foreground">Contact Number</label>
+                <label className="text-sm text-muted-foreground">Name</label>
+                <p>{e.emergency_contact_name}</p>
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground">Contact No.</label>
                 <p>{e.emergency_contact_number}</p>
               </div>
             </CardContent>
@@ -247,6 +306,38 @@ function ViewProfile({ employee }) {
               />
             </CardContent>
           </Card>
+
+          {/* Buttons */}
+          <div className="flex gap-2">
+            {e.employment_status === "Active" && e.status !== "Deployed" && e.status !== "Pending Assignment" && (
+              <AlertDialog open={confirmOpenResignedDialog} onOpenChange={setConfirmOpenResignedDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Mark as Resigned</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Mark as Resigned</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure? This will remove the employee from the Employee Directory list and deactivate their account.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={resigning}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleMarkAsResigned} 
+                      disabled={resigning}>
+                        {resigning ? 
+                          (<>
+                            <Spinner className="size-4" /> "Processing..."
+                          </>) 
+                          : 
+                          "Confirm Resignation"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

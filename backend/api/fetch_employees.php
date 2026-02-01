@@ -112,7 +112,7 @@ if (isset($_GET['employee_id'])) {
 }
 
 // -------------------------------
-// GET ALL EMPLOYEES (SUPER OPTIMIZED)
+// GET ALL EMPLOYEES
 // -------------------------------
 $sql = "
     SELECT 

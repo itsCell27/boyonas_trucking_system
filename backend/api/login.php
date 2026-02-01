@@ -47,7 +47,7 @@ if (!$email || !$password) {
 
 // 2. CHECK USER
 $stmt = $conn->prepare("
-    SELECT user_id, name, email, password, role_id 
+    SELECT user_id, name, email, password, role_id, is_active 
     FROM users 
     WHERE email = ?
 ");
@@ -62,6 +62,13 @@ if (!$user || !password_verify($password, $user['password'])) {
     exit;
 }
 
+// Block inactive users
+if ((int)$user['is_active'] === 0) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Your account has been deactivated. Please contact the administrator."]);
+    exit;
+}
+
 // 4. SUCCESS — CLEAR RATE LIMIT
 clearRateLimit($email);
 
@@ -72,6 +79,6 @@ $_SESSION['role_id'] = $user['role_id'];
 $_SESSION['name'] = $user['name'];
 
 // Remove sensitive info
-unset($user['password']);
+unset($user['password'], $user['is_active']);
 
 echo json_encode(["success" => true, "user" => $user]);

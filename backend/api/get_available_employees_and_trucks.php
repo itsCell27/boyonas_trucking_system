@@ -7,7 +7,7 @@ include 'db.php';
 $response = array();
 
 // Fetch available employees
-$sql_employees = "SELECT * FROM employees WHERE status = 'Idle'";
+$sql_employees = "SELECT * FROM employees WHERE status = 'Idle' AND employment_status = 'Active'";
 $result_employees = $conn->query($sql_employees);
 
 $employees = array();

@@ -106,12 +106,14 @@ try {
 
     $dest_realpath = $without_up . $safeName; // filepath that will be save to db
 
+    $document_type = $row["current_status"] . " - proof of delivery";
+
     // Insert document
     $insert = $conn->prepare("
         INSERT INTO documents (assignment_id, booking_id, document_type, file_path, uploaded_by, date_uploaded)
-        VALUES (?, ?, 'proof_of_delivery', ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, NOW())
     ");
-    $insert->bind_param("iisi", $assignmentId, $bookingId, $dest_realpath, $userId);
+    $insert->bind_param("iissi", $assignmentId, $bookingId, $document_type, $dest_realpath, $userId);
     $ok = $insert->execute();
     $insert->close();
 

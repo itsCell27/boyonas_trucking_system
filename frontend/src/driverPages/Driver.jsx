@@ -61,8 +61,18 @@ export default function DriverPortal() {
       }
     };
 
+    // Initial load
     fetchEmployee();
     fetchAssignments();
+
+    // Auto-refresh every 1 minute
+    const interval = setInterval(() => {
+      fetchEmployee();
+      fetchAssignments();
+    }, 60000); // 1 minute = 60,000 ms
+
+    // Cleanup interval on unmount or user change
+    return () => clearInterval(interval);
   }, [user]);
 
   const openAssignment = (assignment) => {
@@ -86,7 +96,7 @@ export default function DriverPortal() {
         return;
       }
 
-      toast.success("Status updated!");
+      toast.success("Status updated successfully!");
       await fetchAssignments();
     } catch {
       toast.error("Failed to update status");

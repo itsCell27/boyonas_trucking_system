@@ -1,4 +1,4 @@
-import '../../index.css'
+import '@/index.css'
 import { Clock, Truck, MapPin } from 'lucide-react';
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -145,7 +145,7 @@ function RecentActivity() {
                                                 <MapPin className="w-3 h-3" />
                                                 <span>{item.route}</span>
                                             </div>
-                                            <div className="text-xs text-muted-foreground">{item.vehiclePlate} • {item.driver} • {item.client}</div>
+                                            <div className="text-xs text-muted-foreground">Plate Number: {item.vehiclePlate} • Driver: {item.driver} • {item.client}</div>
                                         </div>
                                     </div>
                                     {/* Item Status */}

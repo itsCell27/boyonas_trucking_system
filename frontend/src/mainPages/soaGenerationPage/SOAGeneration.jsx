@@ -1,23 +1,44 @@
+// --- imports unchanged ---
 import React, { useEffect, useMemo, useState } from "react";
-import { Trash2, ArrowBigLeft } from "lucide-react";
+import { Trash2, ArrowBigLeft, CalendarIcon } from "lucide-react";
 import MenuHeader from "@/components/MenuHeader";
 import { API_BASE_URL } from "@/config";
 import axios from "axios";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input"
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const SOAGeneration = () => {
   const [serviceType, setServiceType] = useState("Partnership");
   const [partyOptions, setPartyOptions] = useState([]);
   const [selectedParty, setSelectedParty] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState(null);
+  const [dateTo, setDateTo] = useState(null);
+
   const [deliveries, setDeliveries] = useState([]);
   const [isLoadingParties, setIsLoadingParties] = useState(false);
   const [isLoadingDeliveries, setIsLoadingDeliveries] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
+  // NEW: Tax percentage
+  const [taxPercentage, setTaxPercentage] = useState(0);
+
+  const partyLabel =
+    serviceType === "Partnership" ? "Partner Name" : "Customer Name";
+
+  // --- restore headerData used by MenuHeader (prevents headerData undefined error) ---
   const headerData = [
     {
       headerName: "Statement of Account",
@@ -29,45 +50,47 @@ const SOAGeneration = () => {
           buttonIcon: ArrowBigLeft,
           buttonLink: "/app/soa-generation",
           buttonStyle:
-            "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary rounded-sm cursor-default",
+            "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 text-white bg-primary rounded-sm",
         },
       ],
     },
   ];
 
-  const partyLabel =
-    serviceType === "Partnership" ? "Partner Name" : "Customer Name";
-
-  // --- helpers ---------------------------------------------------------
-
-  const totalAmount = useMemo(
-    () =>
-      deliveries.reduce(
-        (sum, d) => sum + (parseFloat(d.amount || 0) || 0),
-        0
-      ),
+  // -------------------------------------------------------------------------
+  // SUBTOTAL / TAX / TOTAL (client preview)
+  // -------------------------------------------------------------------------
+  const subtotal = useMemo(
+    () => deliveries.reduce((sum, d) => sum + (parseFloat(d.amount || 0) || 0), 0),
     [deliveries]
   );
 
-  // We’re treating everything as "Not Yet Paid" on generation
-  const totalPaid = 0;
-  const totalNotYetPaid = totalAmount - totalPaid;
+  const taxAmount = useMemo(
+    () => +(subtotal * (taxPercentage / 100)).toFixed(2),
+    [subtotal, taxPercentage]
+  );
 
+  const totalAmount = useMemo(
+    () => +(subtotal + taxAmount).toFixed(2),
+    [subtotal, taxAmount]
+  );
+
+  // -------------------------------------------------------------------------
   const handleAmountChange = (idx, value) => {
     const updated = [...deliveries];
-    updated[idx] = {
-      ...updated[idx],
-      amount: value === "" ? "" : Math.max(0, Number(value)),
-    };
+    updated[idx] = { ...updated[idx], amount: value === "" ? "" : Math.max(0, Number(value)) };
     setDeliveries(updated);
   };
 
-  // --- load partner/customer list whenever service type changes -------
+  const handleRemoveRow = (idx) => {
+    setDeliveries((prev) => prev.filter((_, i) => i !== idx));
+  };
 
+  // -------------------------------------------------------------------------
+  // LOAD PARTNERS/CUSTOMERS
+  // -------------------------------------------------------------------------
   useEffect(() => {
     const fetchParties = async () => {
       setIsLoadingParties(true);
-      setError("");
       setPartyOptions([]);
       setSelectedParty("");
 
@@ -79,11 +102,12 @@ const SOAGeneration = () => {
 
         if (!res.data.success) throw new Error(res.data.message);
 
-        setPartyOptions(res.data.data || []);
-        if (res.data.data?.length > 0) setSelectedParty(res.data.data[0]);
+        const list = res.data.data || [];
+        setPartyOptions(list);
 
+        if (list.length > 0) setSelectedParty(list[0]);
       } catch (err) {
-        toast.error(err.response?.data?.message || err.message || "Failed to load list");
+        toast.error(err.response?.data?.message || err.message);
       } finally {
         setIsLoadingParties(false);
       }
@@ -93,38 +117,25 @@ const SOAGeneration = () => {
     setDeliveries([]);
   }, [serviceType]);
 
-
-  // --- load completed deliveries --------------------------------------
-
+  // -------------------------------------------------------------------------
+  // LOAD COMPLETED DELIVERIES
+  // -------------------------------------------------------------------------
   const handleLoadDeliveries = async () => {
-    setError("");
-    setSuccessMsg("");
-
-    if (!selectedParty) {
-      toast.error(`Please select a ${partyLabel.toLowerCase()}.`);
-      return;
-    }
-
-    if (!dateFrom || !dateTo) {
-      toast.error("Please select both start and end dates.");
-      return;
-    }
+    if (!selectedParty) return toast.error(`Please select a ${partyLabel}.`);
+    if (!dateFrom || !dateTo) return toast.error("Please select a date range.");
 
     setIsLoadingDeliveries(true);
 
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/soa_get_completed_deliveries.php`,
-        {
-          params: {
-            service_type: serviceType,
-            party_name: selectedParty,
-            date_from: dateFrom,
-            date_to: dateTo,
-          },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.get(`${API_BASE_URL}/soa_get_completed_deliveries.php`, {
+        params: {
+          service_type: serviceType,
+          party_name: selectedParty,
+          date_from: dateFrom.toISOString().split("T")[0],
+          date_to: dateTo.toISOString().split("T")[0],
+        },
+        withCredentials: true,
+      });
 
       if (!res.data.success) throw new Error(res.data.message);
 
@@ -136,41 +147,29 @@ const SOAGeneration = () => {
 
       setDeliveries(rows);
 
-      if (rows.length === 0) {
-        toast.warning("No completed bookings found for the selected filters.");
-      } else {
-        toast.success("Completed bookings loaded successfully!");
-      }
+      if (rows.length === 0) toast.warning("No completed bookings found.");
+      else toast.success("Completed bookings loaded!");
     } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to load deliveries."
-      );
+      toast.error(err.response?.data?.message || err.message);
     } finally {
       setIsLoadingDeliveries(false);
     }
   };
 
-  // --- generate SOA ----------------------------------------------------
-
+  // -------------------------------------------------------------------------
+  // GENERATE SOA
+  // -------------------------------------------------------------------------
   const handleGenerateSOA = async () => {
-    setError("");
-    setSuccessMsg("");
+    if (deliveries.length === 0) return toast.error("No deliveries loaded.");
 
-    if (deliveries.length === 0) {
-      toast.error("No deliveries to include. Please load completed bookings.");
-      return;
-    }
-
-    const hasInvalidAmount = deliveries.some(
-      (d) => d.amount === "" || isNaN(Number(d.amount))
+    const invalidAmount = deliveries.some(
+      (d) => d.amount === "" || isNaN(Number(d.amount)) || Number(d.amount) <= 0
     );
 
-    if (hasInvalidAmount) {
-      toast.error("Please enter a valid amount for all deliveries.");
-      return;
-    }
+    if (invalidAmount) return toast.error("Each amount must be greater than 0.");
+
+    const missing = deliveries.some((d) => !d.booking_id);
+    if (missing) return toast.error("Missing booking_id on some deliveries.");
 
     setIsGenerating(true);
 
@@ -178,61 +177,76 @@ const SOAGeneration = () => {
       const payload = {
         service_type: serviceType,
         party_name: selectedParty,
-        date_from: dateFrom,
-        date_to: dateTo,
+        date_from: dateFrom.toISOString().split("T")[0],
+        date_to: dateTo.toISOString().split("T")[0],
+        tax_percentage: Number(taxPercentage), // NEW
         deliveries: deliveries.map((d) => ({
-          assignment_id: d.assignment_id,
+          booking_id: d.booking_id,
           dr_number: d.dr_number,
           route: d.route,
           plate_number: d.plate_number,
           delivery_date: d.delivery_date,
           amount: Number(d.amount),
         })),
+        remarks: "",
       };
 
-      const res = await axios.post(
-        `${API_BASE_URL}/soa_generate.php`,
-        payload,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const res = await axios.post(`${API_BASE_URL}/soa_generate.php`, payload, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (!res.data.success) throw new Error(res.data.message);
 
       toast.success(
-        `SOA #${res.data.soa_id} generated successfully! Total: ₱${res.data.total_amount.toLocaleString()}`
+        `SOA #${res.data.soa_id} created! Total: ₱${res.data.total_amount.toLocaleString()}`
       );
 
       setDeliveries([]);
+      setTaxPercentage(0);
     } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to generate SOA."
-      );
+      toast.error(err.response?.data?.message || err.message);
     } finally {
       setIsGenerating(false);
     }
   };
 
+  // -------------------------------------------------------------------------
+  const DatePicker = ({ label, value, onChange }) => (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn("w-full justify-start text-left font-normal", !value && "text-muted-foreground")}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? value.toLocaleDateString("en-CA") : "Pick a date"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={onChange}
+            captionLayout="dropdown"
+            initialFocus
+            className="w-full rounded-xl"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 
-  // --- remove row ------------------------------------------------------
-
-  const handleRemoveRow = (idx) => {
-    const updated = deliveries.filter((_, i) => i !== idx);
-    setDeliveries(updated);
-  };
-
-  // --------------------------------------------------------------------
-
+  // -------------------------------------------------------------------------
   return (
     <div className="flex-1 pt-10 md:pt-0">
       <MenuHeader headerData={headerData} />
 
       <div className="mt-6 space-y-6">
-        {/* Filters */}
+
+        {/* FILTER PANEL */}
         <div className="rounded-xl border bg-card p-4 md:p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-1">Step 1: Select Filters</h2>
           <p className="text-sm text-muted-foreground mb-4">
@@ -240,141 +254,118 @@ const SOAGeneration = () => {
           </p>
 
           <div className="grid gap-4 md:grid-cols-4">
-            {/* Service type */}
+
             <div className="space-y-1">
               <label className="text-sm font-medium">Service Type</label>
-              <select
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value)}
-              >
-                <option value="Partnership">Partnership</option>
-                <option value="LipatBahay">Lipat Bahay</option>
-              </select>
+              <Select value={serviceType} onValueChange={setServiceType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Partnership">Partnership</SelectItem>
+                  <SelectItem value="LipatBahay">Lipat Bahay</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Partner/Customer */}
             <div className="space-y-1">
               <label className="text-sm font-medium">{partyLabel}</label>
-              <select
-                className="w-full rounded-md border px-3 py-2 text-sm"
+              <Select
                 value={selectedParty}
-                onChange={(e) => setSelectedParty(e.target.value)}
+                onValueChange={setSelectedParty}
                 disabled={isLoadingParties || partyOptions.length === 0}
               >
-                {partyOptions.length === 0 && (
-                  <option value="">
-                    {isLoadingParties ? "Loading..." : "No records"}
-                  </option>
-                )}
-                {partyOptions.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder={isLoadingParties ? "Loading..." : "Select party"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {partyOptions.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Date from */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Start Date</label>
-              <input
-                type="date"
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
+            <DatePicker label="Start Date" value={dateFrom} onChange={setDateFrom} />
+            <DatePicker label="End Date" value={dateTo} onChange={setDateTo} />
+          </div>
 
-            {/* Date to */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">End Date</label>
-              <input
-                type="date"
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
+          {/* TAX INPUT */}
+          <div className="mt-4">
+            <label className="text-sm font-medium">Tax Percentage (%)</label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={taxPercentage}
+              onChange={(e) => setTaxPercentage(e.target.value)}
+              className="w-32 mt-1"
+            />
           </div>
 
           <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              onClick={handleLoadDeliveries}
-              disabled={isLoadingDeliveries}
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-70"
-            >
+            <Button onClick={handleLoadDeliveries} disabled={isLoadingDeliveries}>
               {isLoadingDeliveries ? "Loading..." : "Load Completed Bookings"}
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Step 3 table (your screenshot) */}
+        {/* STEP 3 TABLE */}
         <div className="rounded-xl border bg-card p-4 md:p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-1">
-            Step 3: Review and Edit Amounts
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Adjust delivery amounts as needed before generating the SOA.
-          </p>
+          <h2 className="text-lg font-semibold mb-1">Step 3: Review and Edit Amounts</h2>
 
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border mt-4">
             <table className="min-w-full text-sm">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-2 text-left">No.</th>
-                  <th className="px-4 py-2 text-left">Date</th>
-                  <th className="px-4 py-2 text-left">Route</th>
-                  <th className="px-4 py-2 text-left">Plate Number</th>
-                  <th className="px-4 py-2 text-left">Amount</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Actions</th>
+                  <th className="px-4 py-2">No.</th>
+                  <th className="px-4 py-2">DR Number</th>
+                  <th className="px-4 py-2">Date</th>
+                  <th className="px-4 py-2">Route</th>
+                  <th className="px-4 py-2">Plate Number</th>
+                  <th className="px-4 py-2">Amount</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {deliveries.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-6 text-center text-muted-foreground"
-                    >
-                      No deliveries loaded. Use the filters above to load
-                      completed bookings.
+                    <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                      No deliveries loaded. Use the filters above.
                     </td>
                   </tr>
                 )}
 
                 {deliveries.map((row, idx) => (
-                  <tr key={row.assignment_id} className="border-t">
+                  <tr key={`${row.booking_id}-${idx}`} className="border-t">
                     <td className="px-4 py-2">{idx + 1}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {row.delivery_date}
-                    </td>
+                    <td className="px-4 py-2">{row.dr_number}</td>
+                    <td className="px-4 py-2">{row.delivery_date}</td>
                     <td className="px-4 py-2">{row.route}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {row.plate_number}
-                    </td>
+                    <td className="px-4 py-2">{row.plate_number}</td>
+
                     <td className="px-4 py-2">
-                      <input
+                      <Input
                         type="number"
-                        min="0"
-                        className="w-28 rounded-md border px-2 py-1 text-right"
+                        min="1"
+                        step="0.01"
+                        className="w-24"
                         value={row.amount}
-                        onChange={(e) =>
-                          handleAmountChange(idx, e.target.value)
-                        }
+                        onChange={(e) => handleAmountChange(idx, e.target.value)}
                       />
                     </td>
-                    <td className="px-4 py-2">Not Yet Paid</td>
+
+                    <td className="px-4 py-2">{row.status || "Not Yet Paid"}</td>
+
                     <td className="px-4 py-2">
                       <button
-                        type="button"
                         onClick={() => handleRemoveRow(idx)}
-                        className="inline-flex items-center rounded-md border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                        className="inline-flex items-center border rounded-md px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
                       >
-                        <Trash2 className="mr-1 h-3 w-3" />
-                        Remove
+                        <Trash2 className="mr-1 h-3 w-3" /> Remove
                       </button>
                     </td>
                   </tr>
@@ -383,53 +374,30 @@ const SOAGeneration = () => {
             </table>
           </div>
 
-          {/* Totals */}
+          {/* TOTAL PREVIEW */}
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground mb-1">
-                Total Amount
-              </p>
-              <p className="text-2xl font-semibold">
+              <p className="text-sm text-muted-foreground">Subtotal</p>
+              <p className="text-xl font-semibold">₱{subtotal.toLocaleString()}</p>
+            </div>
+
+            <div className="rounded-xl border bg-background p-4">
+              <p className="text-sm text-muted-foreground">Tax ({taxPercentage}%)</p>
+              <p className="text-xl font-semibold">₱{taxAmount.toLocaleString()}</p>
+            </div>
+
+            <div className="rounded-xl border bg-background p-4">
+              <p className="text-sm text-muted-foreground">Total Amount</p>
+              <p className="text-xl font-semibold text-primary">
                 ₱{totalAmount.toLocaleString()}
-              </p>
-            </div>
-
-            <div className="rounded-xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground mb-1">Paid</p>
-              <p className="text-2xl font-semibold text-green-600">₱0</p>
-            </div>
-
-            <div className="rounded-xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground mb-1">
-                Not Yet Paid
-              </p>
-              <p className="text-2xl font-semibold text-red-600">
-                ₱{totalNotYetPaid.toLocaleString()}
               </p>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            {error && (
-              <div className="text-sm text-red-600 font-medium">{error}</div>
-            )}
-            {successMsg && !error && (
-              <div className="text-sm text-emerald-600 font-medium">
-                {successMsg}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4 md:ml-auto">
-              <button
-                type="button"
-                onClick={handleGenerateSOA}
-                disabled={isGenerating || deliveries.length === 0}
-                className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-70"
-              >
-                {isGenerating ? "Generating..." : "Generate SOA Document"}
-              </button>
-            </div>
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleGenerateSOA} disabled={isGenerating || deliveries.length === 0}>
+              {isGenerating ? "Generating..." : "Generate SOA Document"}
+            </Button>
           </div>
         </div>
       </div>

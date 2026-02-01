@@ -49,6 +49,9 @@ const DeliveryHistory = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
 
+  // === Pagination state ===
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   // Helpers
   const formatDate = (dateStr) => {
@@ -92,7 +95,7 @@ const DeliveryHistory = () => {
       assignmentStatus &&
       assignmentStatus !== "Pending"
     ) {
-      status = "in-progress";
+      status = "in progress";
     } else if (
       bookingStatus === "Pending Assignment" ||
       assignmentStatus === "Pending"
@@ -115,7 +118,7 @@ const DeliveryHistory = () => {
       status,
       date: formatDate(r.scheduled_start),
       time: formatTime(r.scheduled_start),
-      revenue: r.service_rate ? Number(r.service_rate) : null,
+      revenue: r.soa_amount != null ? Number(r.soa_amount) : null,
       dateRaw: r.scheduled_start,
     };
   };
@@ -152,26 +155,26 @@ const DeliveryHistory = () => {
   const getStatusBadge = (status) => {
     const styles = {
       completed: {
-        bg: "var(--color-chart-1)",
-        text: "var(--color-card-foreground)",
+        bg: "var(--color-chart-2)",
+        text: "white",
         border: "var(--color-border)",
         label: "Completed",
       },
-      "in-progress": {
-        bg: "var(--color-chart-2)",
-        text: "var(--color-card-foreground)",
+      "in progress": {
+        bg: "var(--color-chart-1)",
+        text: "white",
         border: "var(--color-border)",
         label: "In Progress",
       },
       pending: {
         bg: "var(--color-chart-4)",
-        text: "var(--color-card-foreground)",
+        text: "white",
         border: "var(--color-border)",
         label: "Pending",
       },
       cancelled: {
         bg: "var(--color-destructive)",
-        text: "var(--color-destructive-foreground)",
+        text: "white",
         border: "var(--color-border)",
         label: "Cancelled",
       },
@@ -245,13 +248,18 @@ const DeliveryHistory = () => {
     return result;
   }, [searchedDeliveries, serviceFilter, statusFilter, driverFilter, fromDate, toDate]);
 
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, serviceFilter, statusFilter, driverFilter, fromDate, toDate, deliveries]);
+
   // Status counts
   const statusCounts = useMemo(
     () => ({
       completed: filteredDeliveries.filter((d) => d.status === "completed")
         .length,
       inProgress: filteredDeliveries.filter(
-        (d) => d.status === "in-progress"
+        (d) => d.status === "in progress"
       ).length,
       pending: filteredDeliveries.filter((d) => d.status === "pending").length,
     }),
@@ -275,13 +283,104 @@ const DeliveryHistory = () => {
     setToDate("");
   };
 
+  // === Pagination helpers ===
+  const totalPages = Math.max(1, Math.ceil(filteredDeliveries.length / rowsPerPage));
+
+  const paginatedDeliveries = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredDeliveries.slice(start, start + rowsPerPage);
+  }, [filteredDeliveries, currentPage]);
+
+  const startIndex = filteredDeliveries.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+  const endIndex = Math.min(currentPage * rowsPerPage, filteredDeliveries.length);
+
+  // Compact ellipsis (Option B)
+  const getPageList = (total, current) => {
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+
+    // Always include first page
+    pages.push(1);
+
+    // If current is near the start, show a few beginning pages
+    if (current === 2) {
+      pages.push(2);
+      pages.push("right-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is the first page
+    if (current === 1) {
+      pages.push("right-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is near the end
+    if (current === total - 1) {
+      pages.push("left-ellipsis");
+      pages.push(total - 1);
+      pages.push(total);
+      return pages;
+    }
+
+    // If current is last
+    if (current === total) {
+      pages.push("left-ellipsis");
+      pages.push(total);
+      return pages;
+    }
+
+    // Middle pages show: 1 ... current ... total
+    pages.push("left-ellipsis");
+    pages.push(current);
+    pages.push("right-ellipsis");
+    pages.push(total);
+    return pages;
+  };
+
+  const pageList = getPageList(totalPages, currentPage);
+
+  // Pagination button style C (soft ghost style)
+  const PagButton = ({ children, active, onClick, disabled, ariaLabel }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className="px-3 py-1 rounded-md text-sm transition-colors"
+      style={{
+        backgroundColor: active ? "var(--color-popover)" : "transparent",
+        color: active ? "var(--color-foreground)" : "var(--color-muted-foreground)",
+        border: "none",
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+      onMouseEnter={(e) => {
+        if (!active && !disabled) e.currentTarget.style.backgroundColor = "var(--color-hover)";
+      }}
+      onMouseLeave={(e) => {
+        if (!active && !disabled) e.currentTarget.style.backgroundColor = "transparent";
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  const exportDeliveryHistory = () => {
+    window.open(`${API_BASE_URL}/export_delivery_history_pdf.php`, "_blank");
+  };
+
+
   return (
     <>
-    <div className="flex-1 space-y-6 pt-6 pb-6 min-h-screen bg-[color:var(--color-background)] text-[color:var(--color-foreground)]">
+    <div className="flex-1 space-y-6 pt-6 pb-6 min-h-screen bg-(--color-background) text-(--color-foreground)">
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[color:var(--color-foreground)]">
+          <h2 className="text-2xl font-bold text-(--color-foreground)">
             Delivery History
           </h2>
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
@@ -295,6 +394,7 @@ const DeliveryHistory = () => {
             color: "var(--color-primary-foreground)",
           }}
           type="button"
+          onClick={exportDeliveryHistory}
         >
           <Download className="h-4 w-4" />
           Export Data
@@ -375,7 +475,7 @@ const DeliveryHistory = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="in progress">In Progress</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
@@ -413,7 +513,7 @@ const DeliveryHistory = () => {
                   }}
                   type="button"
                 >
-                  <Calendar className="h-4 w-4 text-[color:var(--color-muted-foreground)]" />
+                  <Calendar className="h-4 w-4 text-(--color-muted-foreground)" />
                   {fromDate || "From Date"}
                 </button>
               </DialogTrigger>
@@ -455,7 +555,7 @@ const DeliveryHistory = () => {
                   }}
                   type="button"
                 >
-                  <Calendar className="h-4 w-4 text-[color:var(--color-muted-foreground)]" />
+                  <Calendar className="h-4 w-4 text-(--color-muted-foreground)" />
                   {toDate || "To Date"}
                 </button>
               </DialogTrigger>
@@ -503,14 +603,14 @@ const DeliveryHistory = () => {
           <span className="flex items-center gap-1">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: "var(--color-chart-1)" }}
+              style={{ backgroundColor: "var(--color-chart-2)" }}
             />
             Completed: {statusCounts.completed}
           </span>
           <span className="flex items-center gap-1">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: "var(--color-chart-2)" }}
+              style={{ backgroundColor: "var(--color-chart-1)" }}
             />
             In Progress: {statusCounts.inProgress}
           </span>
@@ -567,7 +667,7 @@ const DeliveryHistory = () => {
             </thead>
 
             <tbody>
-              {filteredDeliveries.map((delivery) => (
+              {paginatedDeliveries.map((delivery) => (
                 <tr
                   key={delivery.id}
                   className="border-b transition-colors"
@@ -724,6 +824,78 @@ const DeliveryHistory = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Footer with "Showing X–Y of Z" and pagination controls */}
+        <div className="flex items-center justify-between px-4 py-3 border-t"
+             style={{ borderColor: "var(--color-sidebar-border)", backgroundColor: "var(--color-card)" }}>
+          <div style={{ color: "var(--color-muted-foreground)" }} className="text-sm">
+            {filteredDeliveries.length === 0
+              ? `Showing 0–0 of 0`
+              : `Showing ${startIndex}–${endIndex} of ${filteredDeliveries.length}`}
+          </div>
+
+          {/* Pagination controls */}
+          <div className="flex items-center gap-2">
+            {/* First */}
+            <PagButton
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              ariaLabel="First page"
+            >
+              «
+            </PagButton>
+
+            {/* Prev */}
+            <PagButton
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              ariaLabel="Previous page"
+            >
+              &lt;
+            </PagButton>
+
+            {/* Page numbers (compact ellipsis) */}
+            {pageList.map((p, idx) => {
+              if (p === "left-ellipsis" || p === "right-ellipsis") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-2 text-sm" style={{ color: "var(--color-muted-foreground)" }}>
+                    …
+                  </span>
+                );
+              }
+              const pageNum = p;
+              const active = pageNum === currentPage;
+              return (
+                <PagButton
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  active={active}
+                  ariaLabel={`Page ${pageNum}`}
+                >
+                  {pageNum}
+                </PagButton>
+              );
+            })}
+
+            {/* Next */}
+            <PagButton
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              ariaLabel="Next page"
+            >
+              &gt;
+            </PagButton>
+
+            {/* Last */}
+            <PagButton
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              ariaLabel="Last page"
+            >
+              »
+            </PagButton>
+          </div>
         </div>
       </div>
     </div>

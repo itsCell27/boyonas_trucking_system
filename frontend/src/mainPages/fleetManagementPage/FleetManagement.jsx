@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import '../../index.css'
-import MenuHeader from '../../components/MenuHeader'
-import StatusCards from '../../components/StatusCards'
+import '@/index.css'
+import MenuHeader from '@/components/MenuHeader'
+import StatusCards from '@/components/StatusCards'
 import ManageFleetOverview from './ManageFleetOverview'
 import NotAvailableTrucks from './NotAvailableTrucks'
 import AddTruckDialog from './AddTruckDialog';
-import { Truck, CircleCheckBig, Wrench, TriangleAlert, Filter, Plus, Download, ClockArrowUp } from 'lucide-react'
+import { Truck, CircleCheckBig, Wrench, Plus, ClockArrowUp } from 'lucide-react'
 import { API_BASE_URL } from '@/config';
 
 

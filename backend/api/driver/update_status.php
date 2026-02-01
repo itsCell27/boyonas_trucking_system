@@ -116,23 +116,30 @@ try {
         }
     }
 
-    // ✅ FIX 3: Require proof for ALL non-initial status updates (except Pending -> first step)
+    // FIX: Check for proof with the correct document_type format
+    // The document_type is stored as "[CurrentStatus] - proof of delivery"
     if ($assignment["current_status"] !== "Pending" && $newStatus !== "Cancelled" && $newStatus !== "Incomplete") {
-        $docStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM documents WHERE assignment_id = ? AND document_type = 'proof_of_delivery'");
-        $docStmt->bind_param("i", $assignmentId);
+        $currentStatus = $assignment["current_status"];
+        $proofDocType = $currentStatus . " - proof of delivery";
+        
+        $docStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM documents WHERE assignment_id = ? AND document_type = ?");
+        $docStmt->bind_param("is", $assignmentId, $proofDocType);
         $docStmt->execute();
         $cntRow = $docStmt->get_result()->fetch_assoc();
         $docStmt->close();
 
         if (($cntRow["cnt"] ?? 0) < 1) {
-            respond_error("Proof required before updating status");
+            respond_error("Proof required before updating status. Expected document type: " . $proofDocType);
         }
     }
 
-    // "Completed" requires proof (double-check)
+    // "Completed" requires proof (check for the previous status proof)
     if ($newStatus === "Completed") {
-        $docStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM documents WHERE assignment_id = ? AND document_type = 'proof_of_delivery'");
-        $docStmt->bind_param("i", $assignmentId);
+        $previousStatus = "Unloading";
+        $proofDocType = $previousStatus . " - proof of delivery";
+        
+        $docStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM documents WHERE assignment_id = ? AND document_type = ?");
+        $docStmt->bind_param("is", $assignmentId, $proofDocType);
         $docStmt->execute();
         $cntRow = $docStmt->get_result()->fetch_assoc();
         $docStmt->close();
@@ -145,8 +152,11 @@ try {
     // Start transaction for atomicity
     $conn->begin_transaction();
 
-    $booking_status_before = "Ongoing";
+    $booking_status_before = "In Progress";
     $booking_status_after = "Completed";
+
+    $turck_status = "Available";
+    $employee_status = "Idle";
 
     try {
         if ($newStatus == "OTW to Pickup" || $newStatus == "OTW to SOC") {
@@ -161,6 +171,27 @@ try {
             $update_booking_status_after->bind_param("si", $booking_status_after, $assignment["booking_id"]);
             $update_booking_status_after->execute();
             $update_booking_status_after->close();
+
+            // set truck operational_status to Available
+            $update_truck_status = $conn->prepare("UPDATE trucks SET operational_status = ? WHERE truck_id = ?");
+            $update_truck_status->bind_param("si", $turck_status, $assignment["truck_id"]);
+            $update_truck_status->execute();
+            $update_truck_status->close();
+
+            // set driver status to Idle
+            $update_driver_status = $conn->prepare("UPDATE employees SET status = ? WHERE employee_id = ?");
+            $update_driver_status->bind_param("si", $employee_status, $assignment["driver_id"]);
+            $update_driver_status->execute();
+            $update_driver_status->close();
+
+            // set helper status to Idle if not NULL
+            if (!is_null($assignment["helper_id"])){
+                $update_helper_status = $conn->prepare("UPDATE employees SET status = ? WHERE employee_id = ?");
+                $update_helper_status->bind_param("si", $employee_status, $assignment["helper_id"]);
+                $update_helper_status->execute();
+                $update_helper_status->close();
+            }
+            
         }
 
         // Perform update

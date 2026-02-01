@@ -125,8 +125,18 @@ export default function CreatePartnershipBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.scheduled_start || !formData.deadline || !formData.estimated_weight) {
+    if (!formData.dr_number || !formData.scheduled_start || !formData.deadline || !formData.estimated_weight) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (formData.dr_number.includes("LB")) {
+      toast.error("DR Number cannot contain 'LB'");
+      return;
+    }
+
+    if (!formData.dr_number.startsWith("DEL-")) {
+      toast.error("DR Number must start with 'DEL-'");
       return;
     }
 
