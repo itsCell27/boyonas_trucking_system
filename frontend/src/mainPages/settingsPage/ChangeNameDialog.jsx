@@ -62,7 +62,16 @@ export default function ChangeNameDialog({openNameDialog, setOpenNameDialog, onS
             <div className="grid gap-4">
             <div className="grid gap-3">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name"/>
+                <Input 
+                    id="name" 
+                    name="name" 
+                    value={name} 
+                    onChange={(e) => {
+                        const value = e.target.value.replace(/[^a-zA-Z\s'-]/g, "");
+                        setName(value);
+                    }} 
+                    placeholder="Enter your name"
+                />
             </div>
             </div>
             <DialogFooter>

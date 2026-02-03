@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
+import { Eye, EyeOff } from "lucide-react";
 
 import { API_BASE_URL } from "@/config";
 
@@ -26,6 +27,9 @@ export default function ChangeEmailDialog({
   const [email, setEmail] = useState("")
   const [confirmEmail, setConfirmEmail] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const handleSubmit = async () => {
     if (!password || !email || !confirmEmail) {
@@ -94,12 +98,19 @@ export default function ChangeEmailDialog({
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label>Password</Label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
+            <div className="relative w-full">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                placeholder="Enter password"
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <Button variant="ghost" className="absolute right-0 inset-y-0 text-muted-foreground hover:bg-transparent" onClick={togglePasswordVisibility}>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </Button>
+            </div>
+            
           </div>
 
           <div className="grid gap-2">
@@ -107,6 +118,7 @@ export default function ChangeEmailDialog({
             <Input
               type="email"
               value={email}
+              placeholder="Enter new email"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -116,6 +128,7 @@ export default function ChangeEmailDialog({
             <Input
               type="email"
               value={confirmEmail}
+              placeholder="Confirm new email"
               onChange={(e) => setConfirmEmail(e.target.value)}
             />
           </div>

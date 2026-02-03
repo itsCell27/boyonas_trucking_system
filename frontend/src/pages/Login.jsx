@@ -9,7 +9,7 @@ import axios from "axios";
 import { API_BASE_URL } from "@/config";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/context/AuthContext.jsx"; // <-- new
+import { useAuth } from "@/context/AuthContext.jsx"; 
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
