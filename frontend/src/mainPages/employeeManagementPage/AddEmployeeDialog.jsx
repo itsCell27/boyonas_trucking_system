@@ -116,6 +116,7 @@ export function AddEmployeeDialog({ onClose }) {
   };
 
   const isDriver = formData.position === "Driver";
+  const employeeCodePlaceholder = isDriver ? "DRV-001" : "HLP-001";
 
   const isFormValid =
     formData.full_name &&
@@ -214,7 +215,7 @@ export function AddEmployeeDialog({ onClose }) {
                         <label className="text-sm font-medium">Employee Code</label>
                         <Input
                             name="employee_code"
-                            placeholder="DRV-001"
+                            placeholder={employeeCodePlaceholder}
                             value={formData.employee_code}
                             onChange={handleChange}
                             required
@@ -239,7 +240,7 @@ export function AddEmployeeDialog({ onClose }) {
                                 <label className="text-sm font-medium">Driver's License No.</label>
                                 <Input
                                 name="license_info"
-                                placeholder="License No. D123456"
+                                placeholder="License No. A00123456"
                                 value={formData.license_info}
                                 onChange={handleChange}
                                 />

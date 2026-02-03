@@ -136,7 +136,7 @@ export default function AddTruckDialog({ onClose }) {
 
       const result = await response.json();
       if (response.ok) {
-        alert("Truck added successfully!");
+        toast.success("Truck added successfully!");
         setFormData({
           plate_number: "",
           model: "",

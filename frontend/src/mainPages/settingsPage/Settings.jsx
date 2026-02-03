@@ -30,6 +30,8 @@ import { API_BASE_URL } from "@/config";
 import { toast } from "sonner";
 import ChangeNameDialog from './ChangeNameDialog';
 import ChangeEmailDialog from './ChangeEmailDialog';
+import ChangePasswordDialog from './ChangePasswordDialog';
+
 
 function Settings() {
   const { theme, toggleTheme, colorTheme, setColorTheme } = useTheme();
@@ -62,7 +64,7 @@ function Settings() {
 
   const handleLogout = async () => {
       try {
-        const response = await fetch('http://localhost/react_trucking_system/backend/api/logout.php', {
+        const response = await fetch(`${API_BASE_URL}/logout.php`, {
           method: 'POST',
           withCredentials: true,
         });
@@ -245,7 +247,7 @@ function Settings() {
                     Update your account password 
                   </p>
                 </div>
-                <Button variant="outline">Change</Button>
+                <Button variant="outline" onClick={() => setOpenChangePasswordDialog(true)}>Change</Button>
               </div>
               <Separator />
             </div>
@@ -270,7 +272,10 @@ function Settings() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                  <AlertDialogTitle>Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to logout?
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -289,6 +294,11 @@ function Settings() {
       <ChangeEmailDialog
         openEmailDialog={openChangeEmailDialog}
         setOpenEmailDialog={setOpenChangeEmailDialog}
+        onSuccess={fetchUserData}
+      />
+      <ChangePasswordDialog
+        openPasswordDialog={openChangePasswordDialog}
+        setOpenPasswordDialog={setOpenChangePasswordDialog}
         onSuccess={fetchUserData}
       />
     </div>

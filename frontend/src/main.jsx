@@ -13,7 +13,7 @@ import { ThemeContextProvider } from '@/context/ThemeContext'
 import { AuthProvider } from '@/context/AuthContext.jsx';
 import AdminRoute from '@/components/AdminRoute.jsx';
 import DriverRoute from '@/components/DriverRoute.jsx';
-import DriverPortal from '@/driverPages/Driver.jsx';
+import DriverPortal from '@/driverPages/DriverPortal.jsx';
 import { Toaster } from 'sonner';
 
 createRoot(document.getElementById('root')).render(
@@ -40,7 +40,7 @@ createRoot(document.getElementById('root')).render(
             {/* DRIVER-ONLY ROUTES */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DriverRoute />}>
-                <Route path="/driver" element={<DriverPortal />} />
+                <Route path="/driver/*" element={<DriverPortal />} />
               </Route>
             </Route>
           </Routes>

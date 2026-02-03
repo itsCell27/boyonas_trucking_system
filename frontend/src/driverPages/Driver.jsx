@@ -4,18 +4,31 @@ import axios from "axios";
 import { API_BASE_URL } from "@/config";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-import { Clock, CheckCircle, AlertCircle, LogOut, CircleX } from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, LogOut, CircleX, Settings } from "lucide-react";
 
 import BookingDetailModal from "./BookingDetailModal";
 
 export default function DriverPortal() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [employee, setEmployee] = useState(null);
   const [pending, setPending] = useState([]);
@@ -152,21 +165,37 @@ export default function DriverPortal() {
 
   return (
     <div className="space-y-5 p-4 md:p-6">
-      <div className="border bg-primary shadow rounded-xl p-6 flex justify-between items-center">
+      <div className="border bg-card shadow rounded-xl p-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white">{employee.full_name}</h1>
-          <p className="text-sm md:text-base text-white">
+          <h1 className="text-xl sm:text-3xl font-bold">{employee.full_name}</h1>
+          <p className="text-sm sm:text-base">
             {employee.position} – {employee.employee_code}
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={logout}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Logout
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <Button variant="outline" onClick={() => navigate("settings")}>
+            <Settings /> <span className="hidden sm:block">Settings</span>
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3">
+                <LogOut/> <span className="hidden sm:block">Logout</span>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Logout</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to logout?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={logout}>Yes</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        
       </div>
 
       <Tabs defaultValue="pending" className="w-full">
