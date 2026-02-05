@@ -52,12 +52,12 @@ export default function ChangeNameDialog({openNameDialog, setOpenNameDialog, onS
 
     return (
     <Dialog open={openNameDialog} onOpenChange={setOpenNameDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
             <DialogHeader>
-            <DialogTitle>Update Name</DialogTitle>
-            <DialogDescription>
-                Update the name associated with your account.
-            </DialogDescription>
+                <DialogTitle>Update Name</DialogTitle>
+                <DialogDescription>
+                    Update the name associated with your account.
+                </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4">
             <div className="grid gap-3">
@@ -74,7 +74,7 @@ export default function ChangeNameDialog({openNameDialog, setOpenNameDialog, onS
                 />
             </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-row items-center justify-end gap-2">
             <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
             </DialogClose>

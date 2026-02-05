@@ -160,6 +160,11 @@
   --text-sm-noline-heaight: .875rem;
 }
 
+@theme {
+  --breakpoint-xs: 20rem;
+  --breakpoint-xxs: 22rem;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

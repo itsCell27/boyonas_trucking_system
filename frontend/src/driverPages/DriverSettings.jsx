@@ -36,7 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { CircleUserRound, LogOut, ArrowLeft, FileText } from 'lucide-react';
+import { CircleUserRound, LogOut, ArrowLeft, FileText, UserRoundPen, RotateCcwKey, RefreshCcw } from 'lucide-react';
 import { API_BASE_URL } from "@/config";
 import { useTheme } from '@/context/ThemeContext';
 
@@ -236,11 +236,11 @@ export default function DriverSettings() {
     };
 
     return (
-        <div className="space-y-8 p-6">
+        <div className="space-y-8 p-4 sm:p-6 max-w-full overflow-x-hidden">
             {/* HEADER (unchanged) */}
             <div>
-                <h1 className="text-3xl font-bold">Settings</h1>
-                <p className="text-muted-foreground mt-2">
+                <h1 className="text-2xl sm:text-3xl font-bold">Settings</h1>
+                <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
                 Adjust your profile and account settings
                 </p>
             </div>
@@ -249,7 +249,7 @@ export default function DriverSettings() {
                 
                 <div
                     data-slot="card"
-                    className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm"
+                    className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm max-w-2xs xxs:max-w-full"
                 >
                     <div
                     data-slot="card-header"
@@ -357,7 +357,7 @@ export default function DriverSettings() {
                 </div>
 
                 {/* ================= EMPLOYEE INFORMATION ================= */}
-                <Card>
+                <Card className="max-w-2xs xxs:max-w-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                         <CircleUserRound /> Employee Information
@@ -471,7 +471,14 @@ export default function DriverSettings() {
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">
                         {!editMode ? (
-                            <Button onClick={() => setEditMode(true)}>Edit</Button>
+                            <Button onClick={() =>{
+                                if (employee.status === "Deployed") {
+                                    toast.error("Cannot edit information while deployed");
+                                    return;
+                                } else {
+                                    setEditMode(true);
+                                }
+                            }}>Edit</Button>
                         ) : (
                             <>
                             <Button
@@ -492,7 +499,7 @@ export default function DriverSettings() {
 
 
                 {/* ================= DOCUMENTS ================= */}
-                <Card>
+                <Card className="max-w-2xs xxs:max-w-full">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                         <FileText /> Documents
@@ -533,10 +540,15 @@ export default function DriverSettings() {
                                 <Button
                                     size="sm"
                                     onClick={() => {
-                                    setSelectedDoc(doc);
-                                    setDocExpiry(doc.expiry_date);
-                                    setDocFile(null);
-                                    setOpenUpdateDoc(true);
+                                        if (employee.status === "Deployed") {
+                                            toast.error("Cannot update documents while deployed");
+                                            return;
+                                        } else {
+                                            setSelectedDoc(doc);
+                                            setDocExpiry(doc.expiry_date);
+                                            setDocFile(null);
+                                            setOpenUpdateDoc(true);
+                                        }
                                     }}
                                 >
                                     Update
@@ -549,7 +561,7 @@ export default function DriverSettings() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="max-w-2xs xxs:max-w-full">
                     <CardHeader>
                     <CardTitle className="flex items-center gap-2"><CircleUserRound />Account</CardTitle>
                     <CardDescription>Manage your profile and account details</CardDescription>
@@ -568,7 +580,9 @@ export default function DriverSettings() {
                             Username
                             </p>
                         </div>
-                        <Button variant="outline" onClick={() => setOpenChangeNameDialog(true)}>Change</Button>
+                        <Button variant="outline" onClick={() => setOpenChangeNameDialog(true)}>
+                            <UserRoundPen /><span className='hidden xxs:block'>Change</span>
+                        </Button>
                         </div>
                         <Separator />
                         <div className='flex justify-between items-center'>
@@ -583,7 +597,9 @@ export default function DriverSettings() {
                             Your email address is {user ? user.email : 'N/a'}
                             </p>
                         </div>
-                        <Button variant="outline" onClick={() => setOpenChangeEmailDialog(true)}>Change</Button>
+                        <Button variant="outline" onClick={() => setOpenChangeEmailDialog(true)}>
+                            <RefreshCcw /><span className='hidden xxs:block'>Change</span>
+                        </Button>
                         </div>
                         <Separator />
                         <div className='flex justify-between items-center'>
@@ -598,7 +614,9 @@ export default function DriverSettings() {
                             Update your account password 
                             </p>
                         </div>
-                        <Button variant="outline" onClick={() => setOpenChangePasswordDialog(true)}>Change</Button>
+                        <Button variant="outline" onClick={() => setOpenChangePasswordDialog(true)}>
+                            <RotateCcwKey /><span className='hidden xxs:block'>Change</span>
+                        </Button>
                         </div>
                         <Separator />
                     </div>
@@ -618,7 +636,7 @@ export default function DriverSettings() {
                     <AlertDialog>
                         <AlertDialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3">
                         
-                            <LogOut/> Logout
+                            <LogOut/><span className='hidden xxs:block'>Logout</span>
                         
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -667,7 +685,7 @@ export default function DriverSettings() {
             />
 
             <Dialog open={openUpdateDoc} onOpenChange={setOpenUpdateDoc}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
                     <DialogHeader>
                         <DialogTitle>
                             Update {selectedDoc?.document_type || 'Document'}
@@ -698,7 +716,7 @@ export default function DriverSettings() {
                         </div>
                     </div>
 
-                    <DialogFooter className="mt-4">
+                    <DialogFooter className="flex flex-row items-center justify-end gap-2">
                         <Button
                             variant="outline"
                             onClick={() => setOpenUpdateDoc(false)}

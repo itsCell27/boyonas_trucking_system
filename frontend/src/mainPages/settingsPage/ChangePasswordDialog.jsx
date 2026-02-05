@@ -87,7 +87,7 @@ export default function ChangePasswordDialog({
 
   return (
     <Dialog open={openPasswordDialog} onOpenChange={setOpenPasswordDialog}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
         <DialogHeader>
           <DialogTitle>Change Password</DialogTitle>
           <DialogDescription>
@@ -164,7 +164,7 @@ export default function ChangePasswordDialog({
           </Field>
         </FieldGroup>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row items-center justify-end gap-2">
           <DialogClose asChild>
             <Button variant="outline" disabled={loading}>Cancel</Button>
           </DialogClose>
