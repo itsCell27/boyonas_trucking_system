@@ -86,7 +86,7 @@ export default function ChangeEmailDialog({
 
   return (
     <Dialog open={openEmailDialog} onOpenChange={setOpenEmailDialog}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
         <DialogHeader>
           <DialogTitle>Change Email Address</DialogTitle>
           <DialogDescription>
@@ -134,7 +134,7 @@ export default function ChangeEmailDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row items-center justify-end gap-2">
           <Button
             variant="outline"
             onClick={() => setOpenEmailDialog(false)}

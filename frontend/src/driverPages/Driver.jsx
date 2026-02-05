@@ -165,15 +165,15 @@ export default function DriverPortal() {
 
   return (
     <div className="space-y-5 p-4 md:p-6">
-      <div className="border bg-card shadow rounded-xl p-6 flex justify-between items-center">
+      <div className="border bg-card shadow rounded-xl p-4 sm:p-6 flex justify-between items-center">
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold">{employee.full_name}</h1>
+          <h1 className="text-md sm:text-3xl font-bold">{employee.full_name}</h1>
           <p className="text-sm sm:text-base">
             {employee.position} – {employee.employee_code}
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex sm:flex-row items-center gap-3">
           <Button variant="outline" onClick={() => navigate("settings")}>
             <Settings /> <span className="hidden sm:block">Settings</span>
           </Button>
