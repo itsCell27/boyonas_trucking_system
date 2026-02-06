@@ -30,7 +30,7 @@ try {
     $userId = (int)$_SESSION['user_id'];
 
     // Fetch employee_id
-    $empStmt = $conn->prepare("SELECT employee_id FROM employees WHERE user_id = ? LIMIT 1");
+    $empStmt = $conn->prepare("SELECT employee_id, position FROM employees WHERE user_id = ? LIMIT 1");
     if (!$empStmt) {
         log_error_detail("Prepare failed (employees): " . $conn->error);
         respond_error("Server error", 500);
@@ -46,7 +46,17 @@ try {
     }
 
     $employeeId = (int)$emp['employee_id'];
+    $position = $emp['position'];
     $type = $_GET['type'] ?? 'all';
+
+    if ($position === 'Driver') {
+        $whereClause = "a.driver_id = ?";
+    } elseif ($position === 'Helper') {
+        $whereClause = "a.helper_id = ?";
+    } else {
+        respond_error("Unauthorized role", 403);
+    }
+
 
     // Main query
     $sqlBase = "
@@ -57,6 +67,7 @@ try {
             b.partner_name, b.customer_name, b.route_from, b.route_to,
             b.scheduled_start, b.deadline, b.estimated_weight, b.category, b.status AS booking_status,
             t.truck_id, t.plate_number, t.model,
+            d.full_name AS driver_name,
             h.full_name AS helper_name,
             CASE
                 WHEN a.current_status = 'Pending' THEN 1
@@ -72,8 +83,9 @@ try {
         FROM assignments a
         LEFT JOIN bookings b ON a.booking_id = b.booking_id
         LEFT JOIN trucks t ON a.truck_id = t.truck_id
+        LEFT JOIN employees d ON a.driver_id = d.employee_id
         LEFT JOIN employees h ON a.helper_id = h.employee_id
-        WHERE a.driver_id = ?
+        WHERE {$whereClause}
     ";
 
     if ($type === "pending") {

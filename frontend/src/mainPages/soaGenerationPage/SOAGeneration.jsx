@@ -20,6 +20,17 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter,
+} from "@/components/ui/dialog"
+
 const SOAGeneration = () => {
   const [serviceType, setServiceType] = useState("Partnership");
   const [partyOptions, setPartyOptions] = useState([]);
@@ -395,9 +406,32 @@ const SOAGeneration = () => {
           </div>
 
           <div className="mt-6 flex justify-end">
-            <Button onClick={handleGenerateSOA} disabled={isGenerating || deliveries.length === 0}>
-              {isGenerating ? "Generating..." : "Generate SOA Document"}
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  Generate SOA Document
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md max-w-[90vw] rounded-lg">
+                <DialogHeader className="flex flex-col gap-4">
+                  <DialogTitle>Ready to Generate SOA?</DialogTitle>
+                  <DialogDescription>
+                    This will finalize the selected successful deliveries and create the Statement of Account.
+                    Changes to delivery details won’t be allowed after this step.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-3 sm:gap-1">
+                  <DialogClose asChild>
+                    <Button variant="outline">Go Back</Button>
+                  </DialogClose>
+                  <DialogClose asChild>
+                    <Button onClick={handleGenerateSOA} disabled={isGenerating || deliveries.length === 0}>
+                      {isGenerating ? "Generating..." : "Confirm & Generate"}
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

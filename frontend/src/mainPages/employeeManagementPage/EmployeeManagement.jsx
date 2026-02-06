@@ -2,7 +2,7 @@ import '../../index.css'
 import MenuHeader from '../../components/MenuHeader'
 import StatusCards from '../../components/StatusCards'
 import OnLeave from './OnLeave'
-import { TrendingDown, Users, Mail, Plus, UserCheck, Phone, User, Search, Moon, Ellipsis, Truck } from 'lucide-react'
+import { TrendingDown, Users, Mail, Plus, UserCheck, Phone, User, Search, Moon, Ellipsis, Truck, RotateCcw } from 'lucide-react'
 import React, { useState, useEffect } from 'react';
 import axios, { Axios } from 'axios';
 import {
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Fuse from "fuse.js"
 import { API_BASE_URL } from '@/config.js'
+import { useNavigate } from 'react-router-dom'
 import {
   Popover,
   PopoverContent,
@@ -60,7 +61,7 @@ function EmployeeManagement() {
     // count idle employees
     const idleCount = employees.filter(employee => employee.status === 'Idle').length;
 
-
+    const navigate = useNavigate();
 
     const fetchEmployees = async () => {
         try {
@@ -106,30 +107,28 @@ function EmployeeManagement() {
 
     // Create Fuse instance when employees data changes
     useEffect(() => {
-        if (employees.length > 0) {
-            const fuse = new Fuse(employees, {
-                keys: ["full_name", "employee_code", "contact_number"], // searchable fields
-                threshold: 0.3, // lower = stricter, higher = fuzzier
-            })
+        const fuse = new Fuse(employees, {
+            keys: ["full_name", "employee_code", "contact_number"], // searchable fields
+            threshold: 0.3, // lower = stricter, higher = fuzzier
+        })
 
-            let results = query ? fuse.search(query).map((r) => r.item) : [...employees]
+        let results = query ? fuse.search(query).map((r) => r.item) : [...employees]
 
-            // Apply role filter
-            if (roleFilter !== "all_roles") {
-            results = results.filter((emp) =>
-                emp.position.toLowerCase() === roleFilter.toLowerCase()
-            )
-            }
-
-            // Apply status filter
-            if (statusFilter !== "all_status") {
-            results = results.filter((emp) =>
-                emp.status.toLowerCase() === statusFilter.toLowerCase()
-            )
-            }
-
-            setFilteredEmployees(results)
+        // Apply role filter
+        if (roleFilter !== "all_roles") {
+        results = results.filter((emp) =>
+            emp.position.toLowerCase() === roleFilter.toLowerCase()
+        )
         }
+
+        // Apply status filter
+        if (statusFilter !== "all_status") {
+        results = results.filter((emp) =>
+            emp.status.toLowerCase() === statusFilter.toLowerCase()
+        )
+        }
+
+        setFilteredEmployees(results)
     }, [query, employees, roleFilter, statusFilter]) // run whenever query or employees change
 
     if (loading) {
@@ -206,12 +205,17 @@ function EmployeeManagement() {
                 //     buttonStyle: "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all shrink-0 px-3 py-2 border border-foreground/10 bg-background hover:bg-accent hover:text-white rounded-sm"
                 // },
                 {
+                    buttonName: "Rehire Employees",
+                    buttonIcon: RotateCcw,
+                    onClick: () => navigate('rehire-employees'),
+                },
+                {
                     hasShadcnDialog: true,
                     dialogName: AddEmployeeDialog,
                     buttonName: "Add Employee",
                     buttonIcon: Plus,
                     onClose: fetchEmployees,
-                }
+                },
             ]
         }
     ]
@@ -435,7 +439,7 @@ function EmployeeManagement() {
                                                         </div>
                                                         {/* Footer Button */}
                                                         <footer className='flex space-x-2 pt-2'>
-                                                            <ViewProfile employee={employee}/>
+                                                            <ViewProfile employee={employee} refreshList={fetchEmployees}/>
                                                         </footer>
                                                     </div>
                                                 </section>

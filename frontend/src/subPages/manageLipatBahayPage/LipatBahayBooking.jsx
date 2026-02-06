@@ -428,7 +428,8 @@ export default function LipatBahayBooking() {
                                 variant="ghost"
                                 disabled={
                                   b.status === "Cancelled" ||
-                                  b.status === "Completed"
+                                  b.status === "Completed" ||
+                                  b.status === "In Progress"
                                 }
                                 className={
                                   b.status === "Cancelled"

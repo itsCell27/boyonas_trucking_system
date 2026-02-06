@@ -21,6 +21,8 @@ export function AddEmployeeDialog({ onClose }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [employeeCodeError, setEmployeeCodeError] = useState("");
+
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -115,8 +117,27 @@ export function AddEmployeeDialog({ onClose }) {
     }
   };
 
+    const validateEmployeeCode = (position, code) => {
+        if (!position || !code) return false;
+
+        if (position === "Driver") {
+            return /^DRV-\d+/.test(code); // DRV-001, DRV-123
+        }
+
+        if (position === "Helper") {
+            return /^HLP-\d+/.test(code); // HLP-001, HLP-123
+        }
+
+        return false;
+    };
+
   const isDriver = formData.position === "Driver";
   const employeeCodePlaceholder = isDriver ? "DRV-001" : "HLP-001";
+
+    const isEmployeeCodeValid = validateEmployeeCode(
+        formData.position,
+        formData.employee_code
+    );
 
   const isFormValid =
     formData.full_name &&
@@ -126,7 +147,7 @@ export function AddEmployeeDialog({ onClose }) {
     formData.date_started &&
     formData.emergency_contact_name &&
     formData.emergency_contact_number &&
-    formData.employee_code &&
+    isEmployeeCodeValid &&
     formData.nbi_clearance &&
     formData.nbi_expiry_date &&
     formData.police_clearance &&
@@ -217,9 +238,26 @@ export function AddEmployeeDialog({ onClose }) {
                             name="employee_code"
                             placeholder={employeeCodePlaceholder}
                             value={formData.employee_code}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                            const value = e.target.value.toUpperCase();
+                            setFormData((prev) => ({ ...prev, employee_code: value }));
+
+                            if (!validateEmployeeCode(formData.position, value)) {
+                                setEmployeeCodeError(
+                                formData.position === "Driver"
+                                    ? "Employee code must follow DRV-001 format"
+                                    : "Employee code must follow HLP-001 format"
+                                );
+                            } else {
+                                setEmployeeCodeError("");
+                            }
+                            }}
                             required
                         />
+
+                        {employeeCodeError && (
+                            <p className="text-sm text-red-500 mt-1">{employeeCodeError}</p>
+                        )}
                     </div>
                     <div className="col-span-2">
                         <label className="text-sm font-medium">Contact Number</label>

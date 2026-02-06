@@ -118,6 +118,11 @@ export default function CreateLipatBahayBooking() {
       return;
     }
 
+    if (!formData.dr_number.match(/^LB-\d+$/)) {
+      toast.error("DR Number must be in the format 'LB-123'");
+      return;
+    }
+
     const start = new Date(formData.scheduled_start);
     const deadline = new Date(formData.deadline);
     const now = new Date();

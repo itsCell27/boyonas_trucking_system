@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, X } from "lucide-react";
 
-export default function ProofOfDeliveryUpload({ assignmentId, onUploaded }) {
+export default function ProofOfDeliveryUpload({ assignmentId, onUploaded, status }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [notes, setNotes] = useState("");
@@ -50,6 +50,8 @@ export default function ProofOfDeliveryUpload({ assignmentId, onUploaded }) {
 
   const submit = async (e) => {
     e.preventDefault();
+
+    if (status === "Pending") return toast.error("Start the delivery before uploading proof");
 
     if (!assignmentId) return toast.error("Assignment ID missing");
     if (!file) return toast.error("Please upload a file");

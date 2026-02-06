@@ -398,7 +398,7 @@ export default function SPXExpressDelivery() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              disabled={b.status === "Cancelled" || b.status === "Completed"}
+                              disabled={b.status === "Cancelled" || b.status === "Completed" || b.status === "In Progress"}
                               className={
                                 b.status === "Cancelled"
                                   ? "opacity-50 cursor-not-allowed"

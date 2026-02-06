@@ -14,15 +14,19 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MapPin, Package, Truck, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { FileText, Eye } from "lucide-react";
 
 import DeliveryProgressTracker from "./DeliveryProgressTracker";
 import ProofOfDeliveryUpload from "./ProofOfDeliveryUpload";
+
+import { DocumentPreview } from "../components/DocumentPreview";
 
 export default function BookingDetailModal({
   open,
   onOpenChange,
   assignmentId,
   onStatusChange,
+  employeePosition,
 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,6 +34,18 @@ export default function BookingDetailModal({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
+
+  const isDriver = employeePosition === "Driver";
+
+  // Document preview
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+
+  const handleViewDocument = (file_path) => {
+    const url = `${API_BASE_URL}/${file_path}`;
+    setSelectedDocument(url);
+    setPreviewOpen(true);
+  }
 
 
   // =====================================================
@@ -160,7 +176,7 @@ export default function BookingDetailModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md max-w-[95vw] rounded-lg max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               Assignment #{assignment.assignment_id}
@@ -171,10 +187,10 @@ export default function BookingDetailModal({
           </DialogHeader>
 
           <Tabs defaultValue="details" className="mt-4">
-            <TabsList className={`grid w-full ${!isFinalStatus ? `grid-cols-3` : `grid-cols-2`}`}>
+            <TabsList className={`grid w-full grid-cols-3`}>
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="progress">Progress</TabsTrigger>
-              {!isFinalStatus && <TabsTrigger value="proof">Proof</TabsTrigger>}
+              <TabsTrigger value="proof">Proof</TabsTrigger>
             </TabsList>
 
             {/* DETAILS TAB */}
@@ -261,49 +277,65 @@ export default function BookingDetailModal({
                     </div>
                   )}
 
-                  {/* HELPER */}
-                  {data.helper && (
-                    <div className="pt-4 mt-4 border-t">
-                      <p className="text-xs text-muted-foreground mb-1">Helper</p>
-                      <p className="font-medium text-sm md:text-base">
-                        {data.helper.full_name}
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex justify-between pt-4 mt-4 border-t">
+                    {/* DRIVER */}
+                    {data.driver && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Driver</p>
+                        <p className="font-medium text-sm md:text-base">
+                          {data.driver.full_name}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* HELPER */}
+                    {data.helper && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Helper</p>
+                        <p className="font-medium text-sm md:text-base">
+                          {data.helper.full_name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
                 </CardContent>
               </Card>
 
               
               {/* STATUS ACTIONS */}
-              <div className="space-y-3">
-                {selectedStatus === "Pending" && (
-                  <Button
-                    className="w-full"
-                    onClick={() => handleRequestStatusChange(initialStep)}
-                  >
-                    Start Delivery
-                  </Button>
-                )}
-
-                {!isFinalStatus &&
-                  selectedStatus !== "Pending" &&
-                  nextStep && (
-                    <>
-                      <div>Update Status</div>
-                      <Button
-                        className="w-full"
-                        onClick={() => handleRequestStatusChange(nextStep)}
-                        disabled={!hasProof}
-                      >
-                        {nextStep}
-                      </Button>
-                      {!hasProof && (
-                        <div className="text-sm text-destructive">Please upload a proof of delivery to continue.</div>
-                      )}
-                    </>
-                    
+              {isDriver && (
+                <div className="space-y-3">
+                  {selectedStatus === "Pending" && (
+                    <Button
+                      className="w-full"
+                      onClick={() => handleRequestStatusChange(initialStep)}
+                    >
+                      Start Delivery
+                    </Button>
                   )}
-              </div>
+
+                  {!isFinalStatus &&
+                    selectedStatus !== "Pending" &&
+                    nextStep && (
+                      <>
+                        <div>Update Status</div>
+                        <Button
+                          className="w-full"
+                          onClick={() => handleRequestStatusChange(nextStep)}
+                          disabled={!hasProof}
+                        >
+                          {nextStep}
+                        </Button>
+                        {!hasProof && (
+                          <div className="text-sm text-destructive">Please upload a proof of delivery to continue.</div>
+                        )}
+                      </>
+                      
+                    )}
+                </div>
+              )}
+                
             </TabsContent>
 
             {/* PROGRESS TAB */}
@@ -315,30 +347,59 @@ export default function BookingDetailModal({
             </TabsContent>
 
             {/* PROOF TAB */}
-            {!isFinalStatus && (
-              <TabsContent value="proof" className="mt-4">
-                <ProofOfDeliveryUpload
-                  assignmentId={assignment.assignment_id}
-                  onUploaded={fetchData}
-                />
+            <TabsContent value="proof" className="mt-4 flex flex-col gap-4">
+              {!isFinalStatus && isDriver && (
+              <ProofOfDeliveryUpload
+                assignmentId={assignment.assignment_id}
+                onUploaded={fetchData}
+                status={selectedStatus}
+              />
+              )}
+              {/* <div className="mt-4">
+                <p className="text-xs text-muted-foreground">Uploaded files</p>
+                <ul>
+                  {docs.length === 0 && <li className="text-sm">No files uploaded yet</li>}
+                  {docs.map((d) => (
+                    <li key={d.document_id} className="text-sm">
+                      {d.document_type} — {d.file_path.split('/').pop()}
+                    </li>
+                  ))}
+                </ul>
+              </div> */}
 
-                <div className="mt-4">
-                  <p className="text-xs text-muted-foreground">Uploaded files</p>
-                  <ul>
-                    {docs.length === 0 && <li className="text-sm">No files uploaded yet</li>}
-                    {docs.map((d) => (
-                      <li key={d.document_id} className="text-sm">
-                        {d.document_type} — {d.file_path.split('/').pop()}
-                      </li>
-                    ))}
-                  </ul>
+              {/* DOCUMENTS */}
+              {docs.length > 0 ? (
+                <div className="space-y-3">
+                  {docs.map((doc) => (
+                    <div key={doc.document_id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm font-medium">{doc.document_type}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewDocument(doc.file_path)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </TabsContent>
-            )}
+              ) : (
+                <p className="text-sm">No files uploaded yet</p>
+              )}
+            </TabsContent>
+            
           </Tabs>
         </DialogContent>
       </Dialog>
 
+      <DocumentPreview
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={selectedDocument}
+      />
       {/* CONFIRM STATUS UPDATE DIALOG */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-sm">

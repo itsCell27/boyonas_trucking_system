@@ -58,6 +58,9 @@ export default function Login() {
           } else if (roleName === "driver" || roleId === 2) {
             toast.success("Welcome driver.");
             navigate("/driver", { replace: true });
+          } else if (roleName === "helper" || roleId === 3) {
+            toast.success("Welcome helper.");
+            navigate("/driver", { replace: true });
           } else {
             // fallback: not allowed
             toast.error("Your account does not have access to this application.");

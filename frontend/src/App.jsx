@@ -9,7 +9,11 @@ import Sidebar from '@/pages/Sidebar'
 import Dashboard from '@/mainPages/dashboardPage/Dashboard'
 import Services from '@/mainPages/servicesPage/Services'
 import Fleet from '@/mainPages/fleetManagementPage/FleetManagement'
+
 import Employees from '@/mainPages/employeeManagementPage/EmployeeManagement'
+// sub page of Employees
+import RehireEmployees from "./mainPages/employeeManagementPage/RehireEmployees";
+
 import Operations from '@/mainPages/operationsPage/Operations'
 
 import SOADashboard from '@/mainPages/soaGenerationPage/SOADashboard'
@@ -17,6 +21,7 @@ import SOADashboard from '@/mainPages/soaGenerationPage/SOADashboard'
 import SOAGeneration from "@/mainPages/soaGenerationPage/SOAGeneration";
 
 import Settings from '@/mainPages/settingsPage/Settings'
+
 
 // sub pages
 import ManageLipatBahay from '@/subPages/manageLipatBahayPage/ManageLipatBahay'
@@ -39,7 +44,11 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="services" element={<Services />} />
             <Route path="fleet-management" element={<Fleet />} />
+
             <Route path="employee-management" element={<Employees />} />
+            {/* Employee Management Sub Page */}
+            <Route path="employee-management/rehire-employees" element={<RehireEmployees />} />
+
             <Route path="operations" element={<Operations />} />
 
             <Route path="soa-generation" element={<SOADashboard />} />

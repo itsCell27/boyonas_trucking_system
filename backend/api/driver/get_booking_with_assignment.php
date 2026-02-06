@@ -88,6 +88,23 @@ try {
     }
 
     // ==============================
+    // FETCH DRIVER
+    // ==============================
+    $driver = null;
+
+    if (!empty($assignment['driver_id'])) {
+        $dstmt = $conn->prepare("SELECT * FROM employees WHERE employee_id = ? LIMIT 1");
+        if ($dstmt) {
+            $dstmt->bind_param("i", $assignment['driver_id']);
+            $dstmt->execute();
+            $driver = $dstmt->get_result()->fetch_assoc();
+            $dstmt->close();
+        } else {
+            log_error_detail("Prepare failed (driver): " . $conn->error);
+        }
+    }
+
+    // ==============================
     // FETCH HELPER
     // ==============================
     $helper = null;
@@ -140,6 +157,7 @@ try {
         'assignment' => $assignment,
         'booking' => $booking,
         'truck' => $truck,
+        'driver' => $driver,
         'helper' => $helper,
         'documents' => $docs
     ]);
