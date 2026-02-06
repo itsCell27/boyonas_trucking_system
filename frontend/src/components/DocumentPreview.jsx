@@ -30,10 +30,11 @@ export function DocumentPreview({ open, onOpenChange, document }) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent 
                 className="
-                sm:w-[90vw] 
-                w-[70vw] 
+                md:max-w-[30vw]
+                sm:max-w-[50vw] 
+                max-w-[90vw] 
                 p-5 
-                h-[80vh]
+                max-h-[80vh]
                 overflow-hidden
                 rounded-2xl
                 "
@@ -69,7 +70,7 @@ export function DocumentPreview({ open, onOpenChange, document }) {
                 </div>
 
                 {/* FOOTER */}
-                <div className="p-4 pb-0 border-t flex justify-end">
+                <div className="pb-0 border-t pt-4 flex justify-end">
                 <DialogClose asChild>
                     <Button>Close</Button>
                 </DialogClose>

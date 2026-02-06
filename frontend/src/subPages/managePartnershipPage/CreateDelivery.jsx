@@ -140,6 +140,11 @@ export default function CreatePartnershipBooking() {
       return;
     }
 
+    if(!formData.dr_number.match(/^DEL-\d+$/)) {
+      toast.error("DR Number must be in the format 'DEL-123'");
+      return;
+    }
+
     // Date objects
     const start = new Date(formData.scheduled_start);
     const deadline = new Date(formData.deadline);

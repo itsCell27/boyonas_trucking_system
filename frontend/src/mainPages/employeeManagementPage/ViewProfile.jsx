@@ -28,7 +28,7 @@ import { DocumentPreview } from "@/components/DocumentPreview";
 import { toast } from "sonner";
 
 
-function ViewProfile({ employee }) {
+function ViewProfile({ employee, refreshList }) {
   const [open, setOpen] = useState(false);
   const [employeeDetails, setEmployeeDetails] = useState(null);
 
@@ -90,6 +90,10 @@ function ViewProfile({ employee }) {
         toast.success("Employee marked as resigned.");
 
         setConfirmOpenResignedDialog(false);
+        if (typeof refreshList === 'function') {
+          refreshList(); // Refresh the employee list in the parent component
+        }
+        setOpen(false);
       } else {
         toast.error(res.data?.message || "Failed to update employee status.");
       }

@@ -9,9 +9,11 @@ export default function DriverRoute() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Allowed roles for driver page
-  if (user.role_name !== "driver" && user.role_id !== 2) {
-    return <Navigate to="/app/dashboard" replace />;
+  // Allow if user is driver (role_id 2) OR helper (role_id 3)
+  const isDriverOrHelper = user.role_id === 2 || user.role_id === 3;
+
+  if (!isDriverOrHelper) {
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

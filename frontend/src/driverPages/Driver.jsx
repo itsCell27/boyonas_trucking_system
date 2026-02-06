@@ -236,12 +236,19 @@ export default function DriverPortal() {
 
                   <div className="grid grid-cols-2 text-sm">
                     <div>
-                      <p className="text-muted-foreground text-xs">Weight</p>
-                      <p className="font-medium">{a.estimated_weight} kg</p>
+                      <p className="text-muted-foreground text-xs">Driver</p>
+                      <p className="font-medium">{a.driver_name} kg</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">Helper</p>
                       <p className="font-medium">{a.helper_name}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground text-xs">Weight</p>
+                      <p className="font-medium">{a.estimated_weight} kg</p>
                     </div>
                   </div>
 
@@ -373,6 +380,7 @@ export default function DriverPortal() {
           onStatusChange={(newStatus) =>
             handleStatusChange(selectedAssignment.assignment_id, newStatus)
           }
+          employeePosition={employee.position}
         />
       )}
     </div>
