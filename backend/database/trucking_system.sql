@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Feb 01, 2026 at 06:33 PM
+-- Generation Time: Feb 07, 2026 at 03:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -279,7 +279,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role_id`, `contact`, `pending_email`, `email_change_token`, `email_change_expires`, `is_active`) VALUES
-(1, 'cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$NpweGQh8p9/4sOtt2oIuEOoDH3Hwxq0qU.edcl8AKZxmFjdWwL2BO', 1, '09914942839', NULL, NULL, NULL, 1);
+(1, 'Cell', 'lero.edceljohnlorenz.m@gmail.com', '$2y$10$mWU0n6DujIDjruAP1Vm8Eul5aVGlIE49Dr1CuFqxDDnYtSJiQy1Sa', 1, '09914942839', NULL, NULL, NULL, 1);
 
 --
 -- Indexes for dumped tables
@@ -442,7 +442,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `soa`
@@ -454,7 +454,7 @@ ALTER TABLE `soa`
 -- AUTO_INCREMENT for table `soa_detail`
 --
 ALTER TABLE `soa_detail`
-  MODIFY `soa_detail_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `soa_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT for table `status_logs`
